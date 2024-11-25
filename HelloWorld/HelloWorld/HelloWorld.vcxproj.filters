@@ -38,5 +38,17 @@
     <ClInclude Include="direct3d_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="HelloWorld.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="vertex_shader.hlsl" />
+    <FxCompile Include="pixel_shader.hlsl" />
   </ItemGroup>
 </Project>
