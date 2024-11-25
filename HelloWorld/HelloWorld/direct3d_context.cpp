@@ -1,4 +1,5 @@
 #include "direct3d_context.h"
+#include "../../Common/d3d_utils.h"
 using Microsoft::WRL::ComPtr;
 namespace dx3d
 {
@@ -96,41 +97,6 @@ namespace dx3d
 
     void CreateCommandAllocatorsForEachFrame();
 
-    /// <summary>
-    /// Creates a command list and run commands in it
-    /// </summary>
-    void RunCommands(std::function<void(ComPtr<ID3D12GraphicsCommandList>)> callback)
-    {
-        //create the fence that'll wait for the execution
-        ComPtr<ID3D12Fence> _fence;
-        const UINT64 fenceCompletitionValue = 1; //this value indicates that the execution is complete 
-        device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));//fence value begins at 0, a value smaller then completitionValue
-        //creates the allocator
-        ComPtr<ID3D12CommandAllocator> cmdAllocator;
-        HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-            IID_PPV_ARGS(&cmdAllocator));
-        cmdAllocator->Reset();
-        //creates the list that relies on the allocator
-        ComPtr<ID3D12GraphicsCommandList> cmdList;
-        hr = device->CreateCommandList(0,//default gpu 
-            D3D12_COMMAND_LIST_TYPE_DIRECT, //type of commands - direct means that the commands can be executed by the gpu
-            cmdAllocator.Get(), 
-            NULL, IID_PPV_ARGS(&cmdList));
-        cmdList->Close();
-        cmdAllocator->Reset();
-        cmdList->Reset(cmdAllocator.Get(), nullptr);
-        callback(cmdList);
-        cmdList->Close();
-        ID3D12CommandList* ppCommandLists[] = { cmdList.Get() };
-        commandQueue->ExecuteCommandLists(1, ppCommandLists);
-        commandQueue->Signal(_fence.Get(), fenceCompletitionValue);//increases the fence to the value that indicates that the process is done
-        //wait until the fence value goes from 0 to 1
-        HANDLE fenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-        assert(fenceEvent!=nullptr);
-        _fence->SetEventOnCompletion(fenceCompletitionValue, fenceEvent);
-        WaitForSingleObject(fenceEvent, INFINITE);
-    }
-
     void CreateVertexBuffer(std::vector<Vertex>& _vertices, const std::wstring& name, ID3D12Resource*& _vertexBuffer, D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView)
     {
         //todo: use input
@@ -184,7 +150,10 @@ namespace dx3d
 
         //move _vertexBuffer and vBufferUploadHeap from D3D12_RESOURCE_STATE_COMMON to their states, then copy the content
         //to _vertexBuffer
-        RunCommands([&_vertexBuffer, &vBufferUploadHeap, &vertexData](ComPtr<ID3D12GraphicsCommandList> lst) {
+        myd3d::RunCommands(
+            device, 
+            commandQueue,
+            [&_vertexBuffer, &vBufferUploadHeap, &vertexData](ComPtr<ID3D12GraphicsCommandList> lst) {
             //vertexBuffer will go from common to copy destination
             CD3DX12_RESOURCE_BARRIER vertexBufferResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 _vertexBuffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
