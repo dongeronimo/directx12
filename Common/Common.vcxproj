@@ -153,6 +153,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="concatenate.h" />
     <ClInclude Include="d3d_utils.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />

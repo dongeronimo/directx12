@@ -26,5 +26,7 @@
 #include <wrl/client.h>
 #include <functional>
 #include <optional>
-
+#include <string>
+#include <sstream>
+#include <type_traits>
 #endif //PCH_H

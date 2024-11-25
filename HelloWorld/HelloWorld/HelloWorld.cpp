@@ -13,6 +13,7 @@ int main()
 	window.mOnIdle = []() {
 		dx3d::Render();
 	};
+	//fire main loop
 	window.MainLoop();
 	dx3d::WaitForPreviousFrame();
 	dx3d::CleanupD3D();

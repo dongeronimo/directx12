@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "d3d_utils.h"
+#include "concatenate.h"
 using Microsoft::WRL::ComPtr;
+
+
 void myd3d::RunCommands(
     ID3D12Device* device,
     ID3D12CommandQueue* commandQueue,
@@ -16,13 +19,19 @@ void myd3d::RunCommands(
     ComPtr<ID3D12CommandAllocator> cmdAllocator;
     HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
         IID_PPV_ARGS(&cmdAllocator));
+    static int commandListNumber = 0;
+    std::wstring cmdAllocatorName = Concatenate(L"One-Time allocator n ", ++commandListNumber);
     cmdAllocator->Reset();
+    cmdAllocator->SetName(cmdAllocatorName.c_str());
     //creates the list that relies on the allocator
     ComPtr<ID3D12GraphicsCommandList> cmdList;
     hr = device->CreateCommandList(0,//default gpu 
         D3D12_COMMAND_LIST_TYPE_DIRECT, //type of commands - direct means that the commands can be executed by the gpu
         cmdAllocator.Get(),
         NULL, IID_PPV_ARGS(&cmdList));
+    
+    std::wstring cmdListName = Concatenate(L"One-Time command list n ", ++commandListNumber);
+    cmdList->SetName(cmdListName.c_str());
     cmdList->Close();
     cmdAllocator->Reset();
     cmdList->Reset(cmdAllocator.Get(), nullptr);
