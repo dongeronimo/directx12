@@ -24,6 +24,9 @@
     <ClInclude Include="d3d_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common.cpp">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="d3d_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
