@@ -175,8 +175,16 @@ namespace dx3d
             IID_PPV_ARGS(&vBufferUploadHeap));
         vBufferUploadHeap->SetName(L"Vertex Buffer Upload Resource Heap");
         
-        //move _vertexBuffer and vBufferUploadHeap from D3D12_RESOURCE_STATE_COMMON to their states
-        RunCommands([&_vertexBuffer, &vBufferUploadHeap](ComPtr<ID3D12GraphicsCommandList> lst) {
+
+        // store vertex buffer in upload heap
+        D3D12_SUBRESOURCE_DATA vertexData = {};
+        vertexData.pData = reinterpret_cast<BYTE*>(vList); // pointer to our vertex array
+        vertexData.RowPitch = vBufferSize; // size of all our triangle vertex data
+        vertexData.SlicePitch = vBufferSize; // also the size of our triangle vertex data
+
+        //move _vertexBuffer and vBufferUploadHeap from D3D12_RESOURCE_STATE_COMMON to their states, then copy the content
+        //to _vertexBuffer
+        RunCommands([&_vertexBuffer, &vBufferUploadHeap, &vertexData](ComPtr<ID3D12GraphicsCommandList> lst) {
             //vertexBuffer will go from common to copy destination
             CD3DX12_RESOURCE_BARRIER vertexBufferResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 _vertexBuffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
@@ -185,30 +193,28 @@ namespace dx3d
             CD3DX12_RESOURCE_BARRIER stagingBufferResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 vBufferUploadHeap, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_GENERIC_READ);
             lst->ResourceBarrier(1, &stagingBufferResourceBarrier);
-        });
-        // store vertex buffer in upload heap
-        D3D12_SUBRESOURCE_DATA vertexData = {};
-        vertexData.pData = reinterpret_cast<BYTE*>(vList); // pointer to our vertex array
-        vertexData.RowPitch = vBufferSize; // size of all our triangle vertex data
-        vertexData.SlicePitch = vBufferSize; // also the size of our triangle vertex data
+            //copy the vertex data from RAM to the vertex buffer, thru vBufferUploadHeap
+            UpdateSubresources(lst.Get(), _vertexBuffer, vBufferUploadHeap, 0, 0, 1, &vertexData);
+            //now that the data is in _vertexBuffer i transition _vertexBuffer to D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, so that
+            //it can be used as vertex buffer
+            CD3DX12_RESOURCE_BARRIER secondVertexBufferResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(_vertexBuffer, 
+                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            lst->ResourceBarrier(1, &secondVertexBufferResourceBarrier);
 
+        });
         // we are now creating a command with the command list to copy the data from
         // the upload heap to the default heap
-        UpdateSubresources(commandList, _vertexBuffer, vBufferUploadHeap, 0, 0, 1, &vertexData);
-
+        //UpdateSubresources(commandList, _vertexBuffer, vBufferUploadHeap, 0, 0, 1, &vertexData);
         // transition the vertex buffer data from copy destination state to vertex buffer state
-        CD3DX12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(_vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        commandList->ResourceBarrier(1, &resourceBarrier);
-
+        //CD3DX12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(_vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        //commandList->ResourceBarrier(1, &resourceBarrier);
         // Now we execute the command list to upload the initial assets (triangle data)
-        commandList->Close();
-        ID3D12CommandList* ppCommandLists[] = { commandList };
-        commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
+        //commandList->Close();
+        //ID3D12CommandList* ppCommandLists[] = { commandList };
+        //commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
         // increment the fence value now, otherwise the buffer might not be uploaded by the time we start drawing
-        fenceValue[frameIndex]++;
-        commandQueue->Signal(fence[frameIndex], fenceValue[frameIndex]);
-        
+        //fenceValue[frameIndex]++;
+        //commandQueue->Signal(fence[frameIndex], fenceValue[frameIndex]);        
         // create a vertex buffer view for the triangle. We get the GPU memory address to the vertex pointer using the GetGPUVirtualAddress() method
         _vertexBufferView.BufferLocation = _vertexBuffer->GetGPUVirtualAddress();
         _vertexBufferView.StrideInBytes = sizeof(Vertex);
@@ -440,6 +446,7 @@ namespace dx3d
         commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
         //draw the mesh
         commandList->SetGraphicsRootSignature(myRootSignature);
+        commandList->SetPipelineState(myPipeline);
         commandList->RSSetViewports(1, &viewport);
         commandList->RSSetScissorRects(1, &scissorRect);
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
