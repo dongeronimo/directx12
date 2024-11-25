@@ -19,80 +19,37 @@ namespace dx3d
     int frameIndex = INT_MAX;
 
     std::shared_ptr<myd3d::RenderTargetViewData> rtvData = nullptr;
-    //// a descriptor heap to hold resources like the render targets, it's a render-target view heap. 
-    //ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap = nullptr;
-    //// size of the rtv descriptor on the device (all front and back buffers will be the same size),
-    //// the size varies from device to device and we have to retrieve it.
-    //int rtvDescriptorSize = INT_MAX;
-    std::vector<ComPtr<ID3D12Resource>> renderTargets;
+
+    std::vector<ComPtr<ID3D12Resource>> swapChainRenderTargets;
     //Represents the allocations of storage for graphics processing unit (GPU) commands, one per frame
-    std::vector< ID3D12CommandAllocator*> commandAllocator;
+    std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocator;
     // a command list we can record commands into, then execute them to render the frame. We need one
     // per cpu thread. Since our app will be single threaded we create just one.
-    ID3D12GraphicsCommandList* commandList = nullptr;
+    ID3D12GraphicsCommandList* commandList = nullptr; //TODO refactor
     // fences for each frame. We need to wait on these fences until the gpu finishes it's job
-    std::vector<ID3D12Fence*> fence;
+    std::vector<ID3D12Fence*> fence; //TODO refactor
     // this value is incremented each frame. each fence will have its own value
     std::vector<uint64_t> fenceValue;
     // a handle to an event when our fence is unlocked by the gpu
     HANDLE fenceEvent;
 
     //The pipeline state object. In a real app, i'll have a lot of pipelines
-    ID3D12PipelineState* myPipeline = nullptr;
+    ID3D12PipelineState* myPipeline = nullptr; //TODO refactor: move to a class
     //the root signature that defines the data that the shaders will access.
     //in a real app we'll have one root signature for each combination of shader
     //parameters that we have. If two pipelines expect the same inputs they can have
     //the same root signature.
-    ID3D12RootSignature* myRootSignature = nullptr;
+    ID3D12RootSignature* myRootSignature = nullptr; //TODO refactor: move to a class
     //The area the output will be stretched to
-    D3D12_VIEWPORT viewport;
+    D3D12_VIEWPORT viewport; //TODO refactor: move to a class
     //the area where i'll draw
-    D3D12_RECT scissorRect;
+    D3D12_RECT scissorRect;//TODO refactor: move to a class
     //holds the vertexes
-    ID3D12Resource* myVertexBuffer;
+    ID3D12Resource* myVertexBuffer; //TODO refactor: move to a class
     //holds the pointer to the vertex data in the gpu and size properties
-    D3D12_VERTEX_BUFFER_VIEW myVertexBufferView;
+    D3D12_VERTEX_BUFFER_VIEW myVertexBufferView;//TODO refactor: move to a class
 
-    /// <summary>
-    /// Finds an adapter (equivalent to VkPhysicalDevice).
-    /// </summary>
-    /// <param name="dxgiFactory"></param>
-    /// <returns></returns>
-    //IDXGIAdapter1* FindAdapter(IDXGIFactory4* dxgiFactory);
-    /// <summary>
-    /// Creates a direct command queue, using as device dx3d::device. A direct command queue is a queue that the gpu can execute directly.
-    /// </summary>
-    /// <returns></returns>
-    //ID3D12CommandQueue* CreateDirectCommandQueue();
-    /// <summary>
-    /// Fills the struct that holds the description of swapchain's backbuffers.
-    /// </summary>
-    /// <param name="w"></param>
-    /// <param name="h"></param>
-    /// <returns></returns>
-    DXGI_MODE_DESC DescribeSwapChainBackBuffer(int w, int h);
-    /// <summary>
-    /// Creates the swapchain for the given window, with the given size.
-    /// </summary>
-    /// <param name="hwnd"></param>
-    /// <param name="w"></param>
-    /// <param name="h"></param>
-    /// <param name="dxgiFactory"></param>
-    /// <returns></returns>
-    //IDXGISwapChain3* CreateSwapChain(HWND hwnd, int w, int h, IDXGIFactory4* dxgiFactory);
-    /// <summary>
-    /// We need a heap for RTVs (Render-Target Views) descriptors to create the render targets. RTVs are where the render results are
-    /// stored, more or less like a VkFramebuffer+VkImageView from the swap chain.
-    /// </summary>
-    /// <param name="device"></param>
-    /// <returns></returns>
-    //ID3D12DescriptorHeap* CreateRenderTargetViewDescriptorHeap(ID3D12Device* device);
-    /// <summary>
-    /// Create the render targets.
-    /// </summary>
-    //void CreateRenderTargets();
 
-    void CreateCommandAllocatorsForEachFrame();
 
     void CreateVertexBuffer(std::vector<Vertex>& _vertices, const std::wstring& name, ID3D12Resource*& _vertexBuffer, D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView)
     {
@@ -198,12 +155,15 @@ namespace dx3d
             FRAMEBUFFER_COUNT
         );
         // now we create the render targets for the swap chain, linking the swap chain buffers to render target view descriptors
-        renderTargets = myd3d::CreateRenderTargets(rtvData,
+        swapChainRenderTargets = myd3d::CreateRenderTargets(rtvData,
             swapChain, device);
-        CreateCommandAllocatorsForEachFrame();
+        // We need a command allocator for each frame because if we use a single allocator each frame will mess with the other frames
+        // allocations due to the fact that we need to reset the allocator before using it.
+        commandAllocator = myd3d::CreateCommandAllocators(FRAMEBUFFER_COUNT, device);
+        // We are using single thread. If we were using multiple threads we'd need to have a list for each thread.
         hr = device->CreateCommandList(0,//default gpu 
             D3D12_COMMAND_LIST_TYPE_DIRECT, //type of commands - direct means that the commands can be executed by the gpu
-            commandAllocator[0], //we need to specify an allocator to create the list, so we choose the first
+            commandAllocator[0].Get(), //we need to specify an allocator to create the list, so we choose the first
             NULL, IID_PPV_ARGS(&commandList));
         assert(hr == S_OK);
         commandList->Close();
@@ -317,7 +277,7 @@ namespace dx3d
         for (auto i = 0; i < FRAMEBUFFER_COUNT; i++)
         {
             //renderTargets[i]->Release();
-            commandAllocator[i]->Release();
+            //commandAllocator[i]->Release();
             fence[i]->Release();
         }
         myPipeline->Release();
@@ -373,12 +333,12 @@ namespace dx3d
         hr = commandAllocator[frameIndex]->Reset();
         assert(hr == S_OK);
         //when we reset the command list we put it back to the recording state
-        hr = commandList->Reset(commandAllocator[frameIndex], NULL);
+        hr = commandList->Reset(commandAllocator[frameIndex].Get(), NULL);
         assert(hr == S_OK);
         //Record commands into the command list
         // transition the "frameIndex" render target from the present state to the 
         // render target state so the command list draws to it starting from here
-        CD3DX12_RESOURCE_BARRIER fromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex].Get(),
+        CD3DX12_RESOURCE_BARRIER fromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(swapChainRenderTargets[frameIndex].Get(),
             D3D12_RESOURCE_STATE_PRESENT, ///Present is the state that the render target view has to be to be able to present the image
             D3D12_RESOURCE_STATE_RENDER_TARGET //Render target is the state that the RTV has to be to be used by the output merger state.
         );
@@ -407,7 +367,7 @@ namespace dx3d
         commandList->DrawInstanced(3, 1, 0, 0);
         // transition the "frameIndex" render target from the render target state to the 
         // present state.
-        CD3DX12_RESOURCE_BARRIER fromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex].Get(),
+        CD3DX12_RESOURCE_BARRIER fromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(swapChainRenderTargets[frameIndex].Get(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, ///Present is the state that the render target view has to be to be able to present the image
             D3D12_RESOURCE_STATE_PRESENT //Render target is the state that the RTV has to be to be used by the output merger state.
         );
@@ -416,41 +376,6 @@ namespace dx3d
         hr = commandList->Close();
         assert(hr == S_OK);
 
-    }
-
-
-    //void CreateRenderTargets()
-    //{
-    //    assert(renderTargets.size() == 0);//i assume that we have nothing in the array
-    //    HRESULT hr;
-    //    // get a handle to the first descriptor in the descriptor heap. a handle is basically a pointer,
-    //    // but we cannot literally use it like a c++ pointer.
-    //    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvData->rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-    //    //Now that we have all the information we need, we create the render target views for the buffers
-    //    renderTargets.resize(FRAMEBUFFER_COUNT);
-    //    for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
-    //    {
-    //        //Get the buffer in the swap chain
-    //        hr = swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargets[i]));
-    //        assert(hr == S_OK);
-    //        //now a rtv that binds to this buffer
-    //        device->CreateRenderTargetView(renderTargets[i], nullptr, rtvHandle);
-    //        //finally we increment the handle to the rtv descriptors, advancing to the
-    //        //next descriptor. That's why we had to get the size of the descriptor.
-    //        rtvHandle.Offset(1, rtvData->rtvDescriptorSize);
-    //    }
-    //}
-    void CreateCommandAllocatorsForEachFrame()
-    {
-        assert(commandAllocator.size() == 0);
-
-        commandAllocator.resize(FRAMEBUFFER_COUNT);
-        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
-        {
-            HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                IID_PPV_ARGS(&commandAllocator[i]));
-            assert(hr == S_OK);
-        }
     }
 
 }

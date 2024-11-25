@@ -63,12 +63,17 @@ namespace myd3d
 		int amount,
 		Microsoft::WRL::ComPtr<ID3D12Device> device
 	);
-
+	/// <summary>
+	/// Creates the render targets for the swap chain in the render target views alredy created.
+	/// </summary>
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> CreateRenderTargets(
 		std::shared_ptr<myd3d::RenderTargetViewData> rtvData,
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain,
 		Microsoft::WRL::ComPtr<ID3D12Device> device
 	);
+
+	std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> CreateCommandAllocators(int amount,
+		Microsoft::WRL::ComPtr<ID3D12Device> device);
 	/// <summary>
 	/// Run the commands in the callback function.
 	/// RunCommands create a new command allocator and list, rewind it, call callback passing the 

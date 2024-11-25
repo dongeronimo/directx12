@@ -183,3 +183,15 @@ void myd3d::RunCommands(
     _fence->SetEventOnCompletion(fenceCompletitionValue, fenceEvent);
     WaitForSingleObject(fenceEvent, INFINITE);
 }
+
+std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myd3d::CreateCommandAllocators(int amount,
+    Microsoft::WRL::ComPtr<ID3D12Device> device)
+{
+    std::vector<ComPtr<ID3D12CommandAllocator>> allocators(amount);
+    for (int i = 0; i < amount; i++) 
+    {
+        HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+            IID_PPV_ARGS(&allocators[i]));
+    }
+    return allocators;
+}
