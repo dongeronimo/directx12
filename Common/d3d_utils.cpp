@@ -116,6 +116,31 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myd3d::CreateRenderTargetViewDescri
     return heap;
 }
 
+std::vector<ComPtr<ID3D12Resource>> myd3d::CreateRenderTargets(
+    std::shared_ptr<myd3d::RenderTargetViewData> rtvData,
+    Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain,
+    Microsoft::WRL::ComPtr<ID3D12Device> device)
+{
+    std::vector<ComPtr<ID3D12Resource>> renderTargets;
+    // get a handle to the first descriptor in the descriptor heap. a handle is basically a pointer,
+    // but we cannot literally use it like a c++ pointer.
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvData->rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    //Now that we have all the information we need, we create the render target views for the buffers
+    renderTargets.resize(rtvData->amount);
+    for (int i = 0; i < renderTargets.size(); i++)
+    {
+        //Get the buffer in the swap chain
+        HRESULT hr = swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargets[i]));
+        assert(hr == S_OK);
+        //now a rtv that binds to this buffer
+        device->CreateRenderTargetView(renderTargets[i].Get(), nullptr, rtvHandle);
+        //finally we increment the handle to the rtv descriptors, advancing to the
+        //next descriptor. That's why we had to get the size of the descriptor.
+        rtvHandle.Offset(1, rtvData->rtvDescriptorSize);
+    }
+    return renderTargets;
+}
+
 void myd3d::RunCommands(
     ID3D12Device* device,
     ID3D12CommandQueue* commandQueue,

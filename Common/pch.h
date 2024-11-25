@@ -19,6 +19,7 @@
 #include <cassert>
 #include <vector>
 #include <array>
+#include <memory>
 #include <DirectXMath.h>
 #include <fstream>
 #include <iterator>
@@ -29,4 +30,5 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+
 #endif //PCH_H

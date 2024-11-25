@@ -24,7 +24,7 @@ namespace dx3d
     //// size of the rtv descriptor on the device (all front and back buffers will be the same size),
     //// the size varies from device to device and we have to retrieve it.
     //int rtvDescriptorSize = INT_MAX;
-    std::vector<ID3D12Resource*> renderTargets;
+    std::vector<ComPtr<ID3D12Resource>> renderTargets;
     //Represents the allocations of storage for graphics processing unit (GPU) commands, one per frame
     std::vector< ID3D12CommandAllocator*> commandAllocator;
     // a command list we can record commands into, then execute them to render the frame. We need one
@@ -90,7 +90,7 @@ namespace dx3d
     /// <summary>
     /// Create the render targets.
     /// </summary>
-    void CreateRenderTargets();
+    //void CreateRenderTargets();
 
     void CreateCommandAllocatorsForEachFrame();
 
@@ -190,13 +190,16 @@ namespace dx3d
             commandQueue,
             dxgiFactory);
         frameIndex = swapChain->GetCurrentBackBufferIndex();
-        //create a heap for render target view descriptors
+        //create a heap for render target view descriptors and get the size of it's descriptors. We have to get the
+        //size because it can vary from device to device.
         rtvData = std::make_shared<myd3d::RenderTargetViewData>(
             myd3d::CreateRenderTargetViewDescriptorHeap(FRAMEBUFFER_COUNT, device),
-            device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
+            device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV),
+            FRAMEBUFFER_COUNT
         );
         // now we create the render targets for the swap chain, linking the swap chain buffers to render target view descriptors
-        CreateRenderTargets();
+        renderTargets = myd3d::CreateRenderTargets(rtvData,
+            swapChain, device);
         CreateCommandAllocatorsForEachFrame();
         hr = device->CreateCommandList(0,//default gpu 
             D3D12_COMMAND_LIST_TYPE_DIRECT, //type of commands - direct means that the commands can be executed by the gpu
@@ -313,7 +316,7 @@ namespace dx3d
         commandList->Release();
         for (auto i = 0; i < FRAMEBUFFER_COUNT; i++)
         {
-            renderTargets[i]->Release();
+            //renderTargets[i]->Release();
             commandAllocator[i]->Release();
             fence[i]->Release();
         }
@@ -375,7 +378,7 @@ namespace dx3d
         //Record commands into the command list
         // transition the "frameIndex" render target from the present state to the 
         // render target state so the command list draws to it starting from here
-        CD3DX12_RESOURCE_BARRIER fromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex],
+        CD3DX12_RESOURCE_BARRIER fromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex].Get(),
             D3D12_RESOURCE_STATE_PRESENT, ///Present is the state that the render target view has to be to be able to present the image
             D3D12_RESOURCE_STATE_RENDER_TARGET //Render target is the state that the RTV has to be to be used by the output merger state.
         );
@@ -404,7 +407,7 @@ namespace dx3d
         commandList->DrawInstanced(3, 1, 0, 0);
         // transition the "frameIndex" render target from the render target state to the 
         // present state.
-        CD3DX12_RESOURCE_BARRIER fromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex],
+        CD3DX12_RESOURCE_BARRIER fromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex].Get(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, ///Present is the state that the render target view has to be to be able to present the image
             D3D12_RESOURCE_STATE_PRESENT //Render target is the state that the RTV has to be to be used by the output merger state.
         );
@@ -415,42 +418,28 @@ namespace dx3d
 
     }
 
-    //ID3D12DescriptorHeap* CreateRenderTargetViewDescriptorHeap(ID3D12Device* device)
+
+    //void CreateRenderTargets()
     //{
-    //    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-    //    rtvHeapDesc.NumDescriptors = FRAMEBUFFER_COUNT; // number of descriptors for this heap.
-    //    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // this heap is a render target view heap
-
-    //    // This heap will not be directly referenced by the shaders (not shader visible), as this will store the output from the pipeline
-    //    // otherwise we would set the heap's flag to D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-    //    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    //    ID3D12DescriptorHeap* heap;
-    //    HRESULT hr = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&heap));
-    //    assert(hr == S_OK);
-    //    return heap;
+    //    assert(renderTargets.size() == 0);//i assume that we have nothing in the array
+    //    HRESULT hr;
+    //    // get a handle to the first descriptor in the descriptor heap. a handle is basically a pointer,
+    //    // but we cannot literally use it like a c++ pointer.
+    //    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvData->rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    //    //Now that we have all the information we need, we create the render target views for the buffers
+    //    renderTargets.resize(FRAMEBUFFER_COUNT);
+    //    for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+    //    {
+    //        //Get the buffer in the swap chain
+    //        hr = swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargets[i]));
+    //        assert(hr == S_OK);
+    //        //now a rtv that binds to this buffer
+    //        device->CreateRenderTargetView(renderTargets[i], nullptr, rtvHandle);
+    //        //finally we increment the handle to the rtv descriptors, advancing to the
+    //        //next descriptor. That's why we had to get the size of the descriptor.
+    //        rtvHandle.Offset(1, rtvData->rtvDescriptorSize);
+    //    }
     //}
-
-    void CreateRenderTargets()
-    {
-        assert(renderTargets.size() == 0);//i assume that we have nothing in the array
-        HRESULT hr;
-        // get a handle to the first descriptor in the descriptor heap. a handle is basically a pointer,
-        // but we cannot literally use it like a c++ pointer.
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvData->rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-        //Now that we have all the information we need, we create the render target views for the buffers
-        renderTargets.resize(FRAMEBUFFER_COUNT);
-        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
-        {
-            //Get the buffer in the swap chain
-            hr = swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargets[i]));
-            assert(hr == S_OK);
-            //now a rtv that binds to this buffer
-            device->CreateRenderTargetView(renderTargets[i], nullptr, rtvHandle);
-            //finally we increment the handle to the rtv descriptors, advancing to the
-            //next descriptor. That's why we had to get the size of the descriptor.
-            rtvHandle.Offset(1, rtvData->rtvDescriptorSize);
-        }
-    }
     void CreateCommandAllocatorsForEachFrame()
     {
         assert(commandAllocator.size() == 0);

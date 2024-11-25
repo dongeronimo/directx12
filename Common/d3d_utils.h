@@ -7,10 +7,12 @@ namespace myd3d
 	public:
 		RenderTargetViewData(
 			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap,
-			int descriptorSize
-		) : rtvDescriptorHeap(heap), rtvDescriptorSize(descriptorSize) {}
+			int descriptorSize, 
+			int amount
+		) : rtvDescriptorHeap(heap), rtvDescriptorSize(descriptorSize), amount(amount) {}
 		const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap;
 		const int rtvDescriptorSize;
+		const int amount;
 		
 	};
 	/// <summary>
@@ -59,6 +61,12 @@ namespace myd3d
 	/// <returns></returns>
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateRenderTargetViewDescriptorHeap(
 		int amount,
+		Microsoft::WRL::ComPtr<ID3D12Device> device
+	);
+
+	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> CreateRenderTargets(
+		std::shared_ptr<myd3d::RenderTargetViewData> rtvData,
+		Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain,
 		Microsoft::WRL::ComPtr<ID3D12Device> device
 	);
 	/// <summary>
