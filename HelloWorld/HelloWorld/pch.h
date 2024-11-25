@@ -18,6 +18,7 @@
 #include <vector>
 #include <wrl/client.h>
 #include <functional>
+#include <memory>
 constexpr int FRAMEBUFFER_COUNT = 2;
 constexpr bool FULLSCREEN = false;
 

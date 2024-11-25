@@ -4,6 +4,118 @@
 using Microsoft::WRL::ComPtr;
 
 
+Microsoft::WRL::ComPtr<IDXGIFactory4> myd3d::CreateDXGIFactory()
+{
+    ComPtr<IDXGIFactory4> dxgiFactory = nullptr;
+    CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
+    return dxgiFactory;
+}
+
+Microsoft::WRL::ComPtr<IDXGIAdapter1> myd3d::FindAdapter(Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
+{
+    assert(dxgiFactory != nullptr);
+    HRESULT hr;
+    ComPtr<IDXGIAdapter1>  adapter = nullptr; // adapters are the graphics card (this includes the embedded graphics on the motherboard)
+    int adapterIndex = 0; // we'll start looking for directx 12  compatible graphics devices starting at index 0
+    bool adapterFound = false; // set this to true when a good one was found
+    while (dxgiFactory->EnumAdapters1(adapterIndex, &adapter) != DXGI_ERROR_NOT_FOUND)
+    {
+        DXGI_ADAPTER_DESC1 desc;
+        adapter->GetDesc1(&desc);
+        if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+        {
+            // we dont want a software device
+            continue;
+        }
+        // we want a device that is compatible with direct3d 12 (feature level 11 or higher)
+        hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr);
+        if (SUCCEEDED(hr))
+        {
+            wprintf(L"Found device:%s\n", desc.Description);
+            adapterFound = true;
+            break;
+        }
+        adapterIndex++;
+    }
+    assert(adapter != nullptr);
+    return adapter;
+}
+
+Microsoft::WRL::ComPtr<ID3D12Device> myd3d::CreateDevice(Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter)
+{
+    ComPtr<ID3D12Device> device;
+    HRESULT hr;
+    hr = D3D12CreateDevice(
+        adapter.Get(), //the physical device that owns this logical device
+        D3D_FEATURE_LEVEL_12_0, //feature level for shader model 5
+        IID_PPV_ARGS(&device)
+    );
+    assert(hr == S_OK);
+    return device;
+}
+
+Microsoft::WRL::ComPtr<ID3D12CommandQueue> myd3d::CreateDirectCommandQueue(
+    Microsoft::WRL::ComPtr<ID3D12Device> device, const std::wstring& name)
+{
+    assert(device != nullptr);
+    HRESULT hr;
+    ComPtr<ID3D12CommandQueue> queue;
+    D3D12_COMMAND_QUEUE_DESC cqDesc = {};
+    cqDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    cqDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT; // direct means the gpu can directly execute this command queue
+    hr = device->CreateCommandQueue(&cqDesc, IID_PPV_ARGS(&queue)); // create the command queue
+    assert(hr == S_OK);
+    queue->SetName(name.c_str());
+    return queue;
+}
+DXGI_MODE_DESC DescribeSwapChainBackBuffer(int w, int h)
+{
+    DXGI_MODE_DESC backBufferDesc = {};
+    backBufferDesc.Width = w; // buffer width
+    backBufferDesc.Height = h; // buffer height
+    backBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // format of the buffer (rgba 32 bits, 8 bits for each chanel)
+    return backBufferDesc;
+}
+Microsoft::WRL::ComPtr<IDXGISwapChain3> myd3d::CreateSwapChain(HWND hwnd, 
+    int w, int h, int framebufferCount, bool windowed, 
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
+    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
+{
+    DXGI_MODE_DESC backBufferDesc = DescribeSwapChainBackBuffer(w, h);
+    DXGI_SAMPLE_DESC sampleDesc = {};
+    sampleDesc.Count = 1; // multisample count (no multisampling, so we just put 1, since we still need 1 sample)
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    swapChainDesc.BufferCount = framebufferCount; // number of buffers we have
+    swapChainDesc.BufferDesc = backBufferDesc; // our back buffer description
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // this says the pipeline will render to this swap chain
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // dxgi will discard the buffer (data) after we call present
+    swapChainDesc.OutputWindow = hwnd; // handle to our window
+    swapChainDesc.SampleDesc = sampleDesc; // our multi-sampling description
+    swapChainDesc.Windowed = windowed; // set to true, then if in fullscreen must call SetFullScreenState with true for full screen to get uncapped fps
+    IDXGISwapChain* tempSwapChain;
+    dxgiFactory->CreateSwapChain(
+        commandQueue.Get(), // the queue will be flushed once the swap chain is created
+        &swapChainDesc, // give it the swap chain description we created above
+        &tempSwapChain // store the created swap chain in a temp IDXGISwapChain interface
+    );
+    ComPtr<IDXGISwapChain3> sc = static_cast<IDXGISwapChain3*>(tempSwapChain);
+    return sc;
+}
+
+Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myd3d::CreateRenderTargetViewDescriptorHeap(int amount, Microsoft::WRL::ComPtr<ID3D12Device> device)
+{
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+    rtvHeapDesc.NumDescriptors = amount; // number of descriptors for this heap.
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // this heap is a render target view heap
+    // This heap will not be directly referenced by the shaders (not shader visible), as this will store the output from the pipeline
+    // otherwise we would set the heap's flag to D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    ComPtr<ID3D12DescriptorHeap> heap;
+    HRESULT hr = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&heap));
+    assert(hr == S_OK);
+    return heap;
+}
+
 void myd3d::RunCommands(
     ID3D12Device* device,
     ID3D12CommandQueue* commandQueue,

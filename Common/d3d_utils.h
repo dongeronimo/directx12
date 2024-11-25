@@ -2,6 +2,65 @@
 #include "pch.h"
 namespace myd3d
 {
+	class RenderTargetViewData
+	{
+	public:
+		RenderTargetViewData(
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap,
+			int descriptorSize
+		) : rtvDescriptorHeap(heap), rtvDescriptorSize(descriptorSize) {}
+		const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap;
+		const int rtvDescriptorSize;
+		
+	};
+	/// <summary>
+	/// Creates the DirectX Graphics Infrastructure factory. We need it to create the
+	/// adapter and the swap chain.
+	/// </summary>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<IDXGIFactory4> CreateDXGIFactory();
+	/// <summary>
+	/// Finds an adapter (equivalent to VkPhysicalDevice).
+	/// </summary>
+	/// <param name="dxgiFactory"></param>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> FindAdapter(Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory);
+	/// <summary>
+	/// Creates the device, using an adapter.
+	/// </summary>
+	/// <param name="adapter"></param>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<ID3D12Device> CreateDevice(Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter);
+	/// <summary>
+	/// Create a direct command queue using the device
+	/// </summary>
+	/// <param name=""></param>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> CreateDirectCommandQueue(
+		Microsoft::WRL::ComPtr<ID3D12Device> device, const std::wstring& name);
+	/// <summary>
+	/// Creates the swapchain for the given window, with the given size.
+	/// </summary>
+	/// <param name="hwnd"></param>
+	/// <param name="w"></param>
+	/// <param name="h"></param>
+	/// <param name="dxgiFactory"></param>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<IDXGISwapChain3> CreateSwapChain(
+		HWND hwnd,
+		int w, int h, int framebufferCount, bool windowed,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
+		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory);
+	/// <summary>
+	/// Create a heap for renderTargetViews.
+	/// </summary>
+	/// <param name="framebufferCount"></param>
+	/// <param name="device"></param>
+	/// <returns></returns>
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateRenderTargetViewDescriptorHeap(
+		int amount,
+		Microsoft::WRL::ComPtr<ID3D12Device> device
+	);
 	/// <summary>
 	/// Run the commands in the callback function.
 	/// RunCommands create a new command allocator and list, rewind it, call callback passing the 
