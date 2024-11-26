@@ -1,14 +1,9 @@
 #include "direct3d_context.h"
-#include "../../Common/d3d_utils.h"
-#include "Pipeline.h"
+#include "../Common/d3d_utils.h"
+#include "pipeline.h"
 using Microsoft::WRL::ComPtr;
 namespace dx3d
 {
-    std::vector<Vertex> vertices = {
-    { { 0.0f, 0.5f, 0.5f } },
-    { { 0.5f, -0.5f, 0.5f } },
-    { { -0.5f, -0.5f, 0.5f } },
-    };
 
     void Context::CreateVertexBufferFromData(std::vector<Vertex>& _vertices, Microsoft::WRL::ComPtr<ID3D12Resource>& _vertexBuffer, D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView, const std::wstring& name)
     {

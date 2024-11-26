@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloWorld", "HelloWorld\He
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{19077B70-A842-4205-993B-BF3FEDB88D19}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColoredTriangle", "ColoredTriangle\ColoredTriangle.vcxproj", "{B2128EEB-40A5-493C-AD43-CB61964426CA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19077B70-A842-4205-993B-BF3FEDB88D19} = {19077B70-A842-4205-993B-BF3FEDB88D19}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +39,14 @@ Global
 		{19077B70-A842-4205-993B-BF3FEDB88D19}.Release|x64.Build.0 = Release|x64
 		{19077B70-A842-4205-993B-BF3FEDB88D19}.Release|x86.ActiveCfg = Release|Win32
 		{19077B70-A842-4205-993B-BF3FEDB88D19}.Release|x86.Build.0 = Release|Win32
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Debug|x64.ActiveCfg = Debug|x64
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Debug|x64.Build.0 = Debug|x64
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Debug|x86.ActiveCfg = Debug|Win32
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Debug|x86.Build.0 = Debug|Win32
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Release|x64.ActiveCfg = Release|x64
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Release|x64.Build.0 = Release|x64
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Release|x86.ActiveCfg = Release|Win32
+		{B2128EEB-40A5-493C-AD43-CB61964426CA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
