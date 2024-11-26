@@ -156,12 +156,14 @@
     <ClInclude Include="concatenate.h" />
     <ClInclude Include="d3d_utils.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="input_layout_service.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="d3d_utils.cpp" />
+    <ClCompile Include="input_layout_service.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

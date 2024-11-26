@@ -36,4 +36,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="colored_triangle_vertex_shader.hlsl" />
+    <FxCompile Include="colored_triangle_pixel_shader.hlsl" />
+  </ItemGroup>
 </Project>

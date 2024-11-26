@@ -1,5 +1,5 @@
 #include "Pipeline.h"
-
+#include "../Common/input_layout_service.h"
 void dx3d::RootSignatureService::Add(const std::wstring& k, Microsoft::WRL::ComPtr<ID3D12RootSignature> v)
 {
     assert(mRootSignatureTable.count(k) == 0);
@@ -34,18 +34,7 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
     pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     //create input layout
-    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout(
-        {
-            {
-                "POSITION", //goes into POSITION in the shader
-                0, //index 0 in that semantic.  
-                DXGI_FORMAT_R32G32B32_FLOAT,  //x,y,z of 32 bits floats 
-                0, //only binding one buffer at a time 
-                0, //atribute offset, this is the first and only attribute so 0
-                D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, //vertex data
-                0
-            }
-        });
+    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = dx3d::input_layout_service::PositionsAndColors();
     D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
     inputLayoutDesc.NumElements = inputLayout.size();
     inputLayoutDesc.pInputElementDescs = inputLayout.data();

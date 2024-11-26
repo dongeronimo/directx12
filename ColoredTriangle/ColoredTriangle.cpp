@@ -24,8 +24,8 @@ int main()
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
 	std::shared_ptr<dx3d::Pipeline> myPipeline = std::make_shared<dx3d::Pipeline>(
-		L"vertex_shader.cso",
-		L"pixel_shader.cso",
+		L"colored_triangle_vertex_shader.cso",
+		L"colored_triangle_pixel_shader.cso",
 		rootSignatureService->Get(myRootSignatureName),
 		ctx->GetDevice(),
 		L"HelloWorldPipeline"
