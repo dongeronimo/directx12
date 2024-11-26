@@ -8,19 +8,19 @@ constexpr int W = 800;
 constexpr int H = 600;
 
 std::vector<Vertex> vertices = {
-    Vertex(0.0f, 0.5f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f),
-    Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
-    Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f)
+	Vertex(0.0f, 0.5f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f),
+	Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
+	Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f)
 };
 ComPtr<ID3D12Resource> vertexBuffer;
 D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 int main()
 {
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-    myd3d::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle");
-    window.Show();
-    std::unique_ptr<dx3d::Context> ctx = std::make_unique<dx3d::Context>(W, H, window.Hwnd());
-    std::unique_ptr<dx3d::RootSignatureService> rootSignatureService = std::make_unique<dx3d::RootSignatureService>();
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	myd3d::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle");
+	window.Show();
+	std::unique_ptr<dx3d::Context> ctx = std::make_unique<dx3d::Context>(W, H, window.Hwnd());
+	std::unique_ptr<dx3d::RootSignatureService> rootSignatureService = std::make_unique<dx3d::RootSignatureService>();
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
 	std::shared_ptr<dx3d::Pipeline> myPipeline = std::make_shared<dx3d::Pipeline>(
