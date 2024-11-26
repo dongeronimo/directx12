@@ -74,6 +74,9 @@ namespace myd3d
 
 	std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> CreateCommandAllocators(int amount,
 		Microsoft::WRL::ComPtr<ID3D12Device> device);
+#if defined(_DEBUG)
+	Microsoft::WRL::ComPtr<ID3D12Debug> CreateDebugLayer();
+#endif
 	/// <summary>
 	/// Run the commands in the callback function.
 	/// RunCommands create a new command allocator and list, rewind it, call callback passing the 

@@ -140,6 +140,18 @@ std::vector<ComPtr<ID3D12Resource>> myd3d::CreateRenderTargets(
     }
     return renderTargets;
 }
+#if defined(_DEBUG)
+Microsoft::WRL::ComPtr<ID3D12Debug> myd3d::CreateDebugLayer()
+{
+
+    ComPtr<ID3D12Debug> debugInterface;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+    {
+        debugInterface->EnableDebugLayer();
+    }  
+    return debugInterface;
+}
+#endif
 
 void myd3d::RunCommands(
     ID3D12Device* device,
@@ -157,9 +169,6 @@ void myd3d::RunCommands(
     HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
         IID_PPV_ARGS(&cmdAllocator));
     static int commandListNumber = 0;
-    std::wstring cmdAllocatorName = Concatenate(L"One-Time allocator n ", ++commandListNumber);
-    cmdAllocator->Reset();
-    cmdAllocator->SetName(cmdAllocatorName.c_str());
     //creates the list that relies on the allocator
     ComPtr<ID3D12GraphicsCommandList> cmdList;
     hr = device->CreateCommandList(0,//default gpu 

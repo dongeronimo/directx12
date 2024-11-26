@@ -147,10 +147,12 @@
     <ClCompile Include="direct3d_context.cpp" />
     <ClCompile Include="HelloWorld.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="direct3d_context.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Pipeline.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

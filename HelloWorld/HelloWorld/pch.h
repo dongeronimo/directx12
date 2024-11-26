@@ -19,6 +19,9 @@
 #include <wrl/client.h>
 #include <functional>
 #include <memory>
+#include <map>
+#include <unordered_map>
+#include <filesystem>
 constexpr int FRAMEBUFFER_COUNT = 2;
 constexpr bool FULLSCREEN = false;
 
