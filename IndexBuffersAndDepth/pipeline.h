@@ -30,6 +30,11 @@ namespace dx3d
 		//the area where i'll draw
 		D3D12_RECT scissorRect;
 		void DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, D3D12_VERTEX_BUFFER_VIEW vertexBufferView);
+		void DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
+			D3D12_VERTEX_BUFFER_VIEW vertexBufferView,
+			D3D12_INDEX_BUFFER_VIEW indexBufferView,
+			int numberOfIndices);
+
 		void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList);
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipeline;

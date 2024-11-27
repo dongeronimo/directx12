@@ -56,6 +56,9 @@ namespace dx3d
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList()const {
             return commandList;
         }
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetCommandQueue()const {
+            return commandQueue;
+        }
         void Present();
     };
     /// <summary>

@@ -158,14 +158,17 @@
     <ClInclude Include="concatenate.h" />
     <ClInclude Include="d3d_utils.h" />
     <ClInclude Include="input_layout_service.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="mesh_load.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="vertex.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="d3d_utils.cpp" />
     <ClCompile Include="input_layout_service.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_load.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "../Common/window.h"
+#include "../Common/mesh.h"
+#include "../Common/mesh_load.h"
 #include "direct3d_context.h"
 #include "Pipeline.h"
 
@@ -7,13 +9,6 @@ using Microsoft::WRL::ComPtr;
 constexpr int W = 800;
 constexpr int H = 600;
 
-std::vector<Vertex> vertices = {
-	Vertex(0.0f, 0.5f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f),
-	Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
-	Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f)
-};
-ComPtr<ID3D12Resource> vertexBuffer;
-D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 int main()
 {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -30,7 +25,10 @@ int main()
 		ctx->GetDevice(),
 		L"HelloWorldPipeline"
 	);
-	ctx->CreateVertexBufferFromData(vertices, vertexBuffer, vertexBufferView, L"Triangle");
+	//load data from the file
+	auto sphereMeshData = myd3d::LoadMeshes("sphere.glb")[0];
+	std::shared_ptr<myd3d::Mesh> mesh = std::make_shared<myd3d::Mesh>(sphereMeshData,
+		ctx->GetDevice(), ctx->GetCommandQueue());
 	// Fill out the Viewport
 	myPipeline->viewport.TopLeftX = 0;
 	myPipeline->viewport.TopLeftY = 0;
@@ -46,7 +44,7 @@ int main()
 	myPipeline->scissorRect.bottom = H;
 
 	//set onIdle handle to deal with rendering
-	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName, &myPipeline]() {
+	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName, &myPipeline, &mesh]() {
 		//wait until i can interact with this frame again
 		ctx->WaitForPreviousFrame();
 		//reset the allocator and the command list
@@ -65,7 +63,10 @@ int main()
 		//bind the pipeline
 		ctx->BindPipeline(myPipeline);
 		//draw the meshes using the pipeline
-		myPipeline->DrawInstanced(ctx->GetCommandList(), vertexBufferView);
+		myPipeline->DrawInstanced(ctx->GetCommandList(), 
+			mesh->VertexBufferView(), 
+			mesh->IndexBufferView(), 
+			mesh->NumberOfIndices());
 		//...
 		//now that we drew everything, transition the rtv to presentation
 		ctx->TransitionCurrentRenderTarget(D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -78,7 +79,7 @@ int main()
 
 	rootSignatureService.reset();
 	ctx.reset();
-	vertexBuffer = nullptr;
+	mesh = nullptr;
 
 	//dx3d::CleanupD3D();
 	return 0;

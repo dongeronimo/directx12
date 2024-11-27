@@ -65,6 +65,16 @@ void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandL
     commandList->DrawInstanced(3, 1, 0, 0);
 }
 
+void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferView, 
+    D3D12_INDEX_BUFFER_VIEW indexBufferView,
+    int numberOfIndices)
+{
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->IASetIndexBuffer(&indexBufferView);
+    commandList->DrawIndexedInstanced(numberOfIndices, 1, 0, 0, 0);
+}
+
 void dx3d::Pipeline::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
 {
     commandList->SetPipelineState(mPipeline.Get());

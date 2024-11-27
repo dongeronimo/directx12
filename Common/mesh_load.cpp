@@ -43,6 +43,7 @@ std::vector<myd3d::MeshData> myd3d::LoadMeshes(const std::string& filename)
                 indexData.push_back(face.mIndices[k]);
             }
         }
+        md.name = std::string(currMesh->mName.C_Str());
         md.indices = indexData;
         assert(md.indices.size() > 0);
         assert(md.vertices.size() > 0);

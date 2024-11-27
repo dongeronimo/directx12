@@ -9,11 +9,12 @@
 and build all exporters.
     - or disable build all exporters and enable build all importers if you don't care about a bigger lib
 6) open assimp project in visual studio, run ALL_BUILD, close, reopen as admin, run INSTALL  
-6) open directx-headers with cmake, set output directory to DirectX-Headers\Build
-6) generate directx-headers project
-6) open directx-headers project, run ALL_BUILD, close, then open VS again as elevated user, and run INSTALL
-6) open MyDirectx12.sln visual studio 2024
-7) build
+7) open directx-headers with cmake, set output directory to DirectX-Headers\Build
+8) generate directx-headers project
+9) open directx-headers project, run ALL_BUILD, close, then open VS again as elevated user, and run INSTALL
+10) run symbolic_links.bat as admin
+11) open MyDirectx12.sln visual studio 2024
+12) build
 
 ## Projects
 - Common: code that's shared between the projects

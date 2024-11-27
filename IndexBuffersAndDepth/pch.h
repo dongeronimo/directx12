@@ -22,11 +22,8 @@
 #include <map>
 #include <unordered_map>
 #include <filesystem>
+
+#include "../Common/vertex.h"
 constexpr int FRAMEBUFFER_COUNT = 2;
 constexpr bool FULLSCREEN = false;
 
-struct Vertex {
-	Vertex(float x, float y, float z, float r, float g, float b, float a) : pos(x, y, z), color(r, g, b, z) {}
-	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT4 color;
-};
