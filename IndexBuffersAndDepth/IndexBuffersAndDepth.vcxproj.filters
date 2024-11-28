@@ -24,6 +24,9 @@
     <ClCompile Include="pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="view_projection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -35,5 +38,12 @@
     <ClInclude Include="pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="view_projection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="index_buffers_and_depth_vertex_shader.hlsl" />
+    <FxCompile Include="index_buffers_and_depth_pixel_shader.hlsl" />
   </ItemGroup>
 </Project>

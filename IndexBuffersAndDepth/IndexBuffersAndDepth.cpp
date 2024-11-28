@@ -4,6 +4,7 @@
 #include "../Common/mesh_load.h"
 #include "direct3d_context.h"
 #include "Pipeline.h"
+#include "view_projection.h"
 
 using Microsoft::WRL::ComPtr;
 constexpr int W = 800;
@@ -17,16 +18,22 @@ int main()
 	std::unique_ptr<dx3d::Context> ctx = std::make_unique<dx3d::Context>(W, H, window.Hwnd());
 	std::unique_ptr<dx3d::RootSignatureService> rootSignatureService = std::make_unique<dx3d::RootSignatureService>();
 	const std::wstring myRootSignatureName = L"MyRootSignature";
+
+	dx3d::ViewProjection viewProjection(*ctx);
+	viewProjection.SetPerspective(45.0f, (float)W / (float)H, 0.01f, 100.f);
+	viewProjection.LookAt({ 3.0f, 5.0f, 7.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+	
+
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
 	std::shared_ptr<dx3d::Pipeline> myPipeline = std::make_shared<dx3d::Pipeline>(
-		L"colored_triangle_vertex_shader.cso",
-		L"colored_triangle_pixel_shader.cso",
+		L"index_buffers_and_depth_vertex_shader.cso",
+		L"index_buffers_and_depth_pixel_shader.cso",
 		rootSignatureService->Get(myRootSignatureName),
 		ctx->GetDevice(),
 		L"HelloWorldPipeline"
 	);
 	//load data from the file
-	auto sphereMeshData = myd3d::LoadMeshes("sphere.glb")[0];
+	auto sphereMeshData = myd3d::LoadMeshes("assets/cube.glb")[0];
 	std::shared_ptr<myd3d::Mesh> mesh = std::make_shared<myd3d::Mesh>(sphereMeshData,
 		ctx->GetDevice(), ctx->GetCommandQueue());
 	// Fill out the Viewport
@@ -44,7 +51,8 @@ int main()
 	myPipeline->scissorRect.bottom = H;
 
 	//set onIdle handle to deal with rendering
-	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName, &myPipeline, &mesh]() {
+	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName, 
+		&myPipeline, &mesh, &viewProjection]() {
 		//wait until i can interact with this frame again
 		ctx->WaitForPreviousFrame();
 		//reset the allocator and the command list
@@ -58,8 +66,11 @@ int main()
 		else red += 0.0001f;
 		// Clear the render target by using the ClearRenderTargetView command
 		ctx->ClearRenderTargetView({ red, 0.2f, 0.4f, 1.0f });
+		//TODO: one viewProjection per frame, at the moment i have a view projection that is shared by all frames
+
 		//bind root signature
-		ctx->BindRootSignature(rootSignatureService->Get(myRootSignatureName));
+		ctx->BindRootSignature(rootSignatureService->Get(myRootSignatureName), viewProjection);
+		viewProjection.StoreInBuffer();
 		//bind the pipeline
 		ctx->BindPipeline(myPipeline);
 		//draw the meshes using the pipeline

@@ -123,6 +123,6 @@ myd3d::Mesh::Mesh(MeshData& data,
     mVertexBufferView.SizeInBytes = vBufferSize;
 
     mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();
-    mIndexBufferView.SizeInBytes = vBufferSize;
+    mIndexBufferView.SizeInBytes = iBufferSize;
     mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 }

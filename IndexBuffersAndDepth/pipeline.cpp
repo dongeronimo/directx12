@@ -34,7 +34,7 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
     pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     //create input layout
-    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = dx3d::input_layout_service::PositionsAndColors();
+    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = dx3d::input_layout_service::PositionsNormalsAndUVs();
     D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
     inputLayoutDesc.NumElements = inputLayout.size();
     inputLayoutDesc.pInputElementDescs = inputLayout.data();
@@ -57,12 +57,6 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipeline));
     assert(hr == S_OK);
     mPipeline->SetName(name.c_str());
-}
-
-void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, D3D12_VERTEX_BUFFER_VIEW vertexBufferView)
-{
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    commandList->DrawInstanced(3, 1, 0, 0);
 }
 
 void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 

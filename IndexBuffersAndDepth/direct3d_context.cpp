@@ -1,6 +1,7 @@
 #include "direct3d_context.h"
 #include "../Common/d3d_utils.h"
 #include "pipeline.h"
+#include "view_projection.h"
 using Microsoft::WRL::ComPtr;
 namespace dx3d
 {
@@ -119,9 +120,12 @@ namespace dx3d
     {
         commandList->ClearRenderTargetView(rtvHandle, rgba.data(), 0, nullptr);
     }
-    void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs)
+    void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+        ViewProjection& viewProjectionData)
     {
         commandList->SetGraphicsRootSignature(rs.Get());
+        commandList->SetGraphicsRootConstantBufferView(0,//bind to b0
+            viewProjectionData.GetConstantBuffer()->GetGPUVirtualAddress());
     }
     void Context::BindPipeline(std::shared_ptr<Pipeline> pipe)
     {
@@ -140,6 +144,27 @@ namespace dx3d
         assert(hr == S_OK);
         hr = swapChain->Present(0, 0);
         assert(hr == S_OK);
+    }
+
+    void Context::CreateConstantBufferView(
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, 
+        D3D12_CONSTANT_BUFFER_VIEW_DESC& cbvDesc,
+        Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
+        size_t constantBufferSize)
+    {
+        cbvDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress();
+        cbvDesc.SizeInBytes = constantBufferSize;
+
+        // Create the descriptor heap.
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = 1;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
+
+        // Create the CBV in the heap.
+        device->CreateConstantBufferView(&cbvDesc, descriptorHeap->GetCPUDescriptorHandleForHeapStart());
     }
 
     Context::Context(int w, int h, HWND hwnd)
@@ -202,10 +227,12 @@ namespace dx3d
 
     ComPtr<ID3D12RootSignature> Context::CreateRootSignature(const std::wstring& name)
     {
+        CD3DX12_ROOT_PARAMETER rootParam[1] = {};
+        rootParam[0].InitAsConstantBufferView(0);  // Register b0
         //create root signature
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0,//number of parameters
-            nullptr,//parameter list
+        rootSignatureDesc.Init(1,//number of parameters
+            rootParam,//parameter list
             0,//number of static samplers
             nullptr,//static samplers list
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT //flags

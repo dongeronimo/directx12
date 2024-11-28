@@ -142,11 +142,23 @@
     <ClCompile Include="direct3d_context.cpp" />
     <ClCompile Include="IndexBuffersAndDepth.cpp" />
     <ClCompile Include="pipeline.cpp" />
+    <ClCompile Include="view_projection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="direct3d_context.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pipeline.h" />
+    <ClInclude Include="view_projection.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="index_buffers_and_depth_pixel_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="index_buffers_and_depth_vertex_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

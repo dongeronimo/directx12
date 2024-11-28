@@ -5,7 +5,7 @@
 namespace dx3d
 {
     class Pipeline;
-
+    class ViewProjection;
     class Context
     {
     private:
@@ -51,7 +51,8 @@ namespace dx3d
         void TransitionCurrentRenderTarget(D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
         void SetCurrentOutputMergerTarget();
         void ClearRenderTargetView(std::array<float, 4> rgba);
-        void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs);
+        void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+            ViewProjection& viewProjectionData);
         void BindPipeline(std::shared_ptr<Pipeline> pipe);
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList()const {
             return commandList;
@@ -60,6 +61,11 @@ namespace dx3d
             return commandQueue;
         }
         void Present();
+        void CreateConstantBufferView(
+            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap,
+            D3D12_CONSTANT_BUFFER_VIEW_DESC& cbvDesc,
+            Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
+            size_t constantBufferSize);
     };
     /// <summary>
     /// Initializes direct3d. Must be called after we create the window.

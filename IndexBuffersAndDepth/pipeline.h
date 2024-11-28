@@ -29,7 +29,6 @@ namespace dx3d
 		D3D12_VIEWPORT viewport;
 		//the area where i'll draw
 		D3D12_RECT scissorRect;
-		void DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, D3D12_VERTEX_BUFFER_VIEW vertexBufferView);
 		void DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
 			D3D12_VERTEX_BUFFER_VIEW vertexBufferView,
 			D3D12_INDEX_BUFFER_VIEW indexBufferView,

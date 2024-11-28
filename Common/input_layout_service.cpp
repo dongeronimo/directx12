@@ -28,3 +28,14 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsAndCo
     };
     return inputLayout;
 }
+
+std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsNormalsAndUVs()
+{
+    std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+    };
+    return inputLayout;
+}
