@@ -54,7 +54,6 @@ std::vector<myd3d::MeshData> myd3d::LoadMeshes(const std::string& filename)
 const aiScene* LoadScene(Assimp::Importer& importer, const std::string& path) {
     const aiScene* scene = importer.ReadFile(path.c_str(),
         aiProcess_Triangulate |
-        aiProcess_FlipWindingOrder |
         aiProcess_JoinIdenticalVertices);
     const char* err = importer.GetErrorString();
     if (!scene) {

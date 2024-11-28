@@ -125,7 +125,8 @@ namespace dx3d
     }
     void Context::ClearRenderTargetView(std::array<float, 4> rgba)
     {
-        commandList->ClearDepthStencilView(dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart(),
+        commandList->ClearDepthStencilView(
+            dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart(),
             D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         commandList->ClearRenderTargetView(rtvHandle, rgba.data(), 0, nullptr);
     }
@@ -257,8 +258,12 @@ namespace dx3d
             dsDescriptorHeap[i]->SetName(name.c_str());
         }
         CD3DX12_HEAP_PROPERTIES depthStencilHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, 
-            w, h, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+
+        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, //format
+            w, h, // w/h 
+            1, //array size 
+            1, //mip levels 
+            1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
         for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
         {
             device->CreateCommittedResource(

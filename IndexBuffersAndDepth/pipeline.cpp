@@ -64,7 +64,7 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     //create the pipeline state object
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {}; // a structure to define a pso
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-    psoDesc.DepthStencilState = depthStencilDesc;
+    psoDesc.DepthStencilState = depthStencilDesc;// CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.InputLayout = inputLayoutDesc; // the structure describing our input layout
     psoDesc.pRootSignature = rootSignature.Get(); // the root signature that describes the input data this pso needs
     psoDesc.VS = vertexShaderBytecode; // structure describing where to find the vertex shader bytecode and how large it is
