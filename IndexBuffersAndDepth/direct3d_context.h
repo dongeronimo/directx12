@@ -34,8 +34,10 @@ namespace dx3d
         std::vector<Microsoft::WRL::ComPtr<ID3D12Fence>> fence; //TODO refactor
         // this value is incremented each frame. each fence will have its own value
         std::vector<uint64_t> fenceValue;
-        //// a handle to an event when our fence is unlocked by the gpu
-        //HANDLE fenceEvent;
+        // This is the memory for our depth buffer. it will also be used for a stencil buffer in a later tutorial
+        std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> depthStencilBuffer; 
+        // This is a heap for our depth/stencil buffer descriptor
+        std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>> dsDescriptorHeap; 
     public:
         Context(int w, int h, HWND hwnd);
         Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateRootSignature(const std::wstring& name);
@@ -67,16 +69,4 @@ namespace dx3d
             Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
             size_t constantBufferSize);
     };
-    /// <summary>
-    /// Initializes direct3d. Must be called after we create the window.
-    /// </summary>
-    /// <param name="w"></param>
-    /// <param name="h"></param>
-    /// <param name="hwnd"></param>
-    /// <returns></returns>
-    //bool InitD3D(int w, int h, HWND hwnd);
-    void CleanupD3D();
-    void WaitForPreviousFrame();
-    //void Render();
-    //void UpdatePipeline();
 }

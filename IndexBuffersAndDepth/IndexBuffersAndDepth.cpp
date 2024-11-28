@@ -33,7 +33,7 @@ int main()
 		L"HelloWorldPipeline"
 	);
 	//load data from the file
-	auto sphereMeshData = myd3d::LoadMeshes("assets/cube.glb")[0];
+	auto sphereMeshData = myd3d::LoadMeshes("assets/monkey.glb")[0];
 	std::shared_ptr<myd3d::Mesh> mesh = std::make_shared<myd3d::Mesh>(sphereMeshData,
 		ctx->GetDevice(), ctx->GetCommandQueue());
 	// Fill out the Viewport

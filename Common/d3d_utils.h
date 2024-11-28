@@ -91,4 +91,6 @@ namespace myd3d
 		ID3D12Device* device,
 		ID3D12CommandQueue* commandQueue,
 		std::function<void(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>)> callback);
+
+
 }

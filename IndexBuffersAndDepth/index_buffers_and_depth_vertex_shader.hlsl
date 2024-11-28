@@ -19,6 +19,6 @@ VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     output.pos = mul(float4(input.pos, 1.0f), viewProjectionMatrix);
-    output.color = float4(input.uv, 0, 1);
+    output.color = float4(input.uv,1, 1);
     return output;
 }

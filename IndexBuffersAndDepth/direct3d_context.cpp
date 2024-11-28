@@ -2,6 +2,7 @@
 #include "../Common/d3d_utils.h"
 #include "pipeline.h"
 #include "view_projection.h"
+#include "../Common/concatenate.h"
 using Microsoft::WRL::ComPtr;
 namespace dx3d
 {
@@ -115,9 +116,17 @@ namespace dx3d
         // set the render target for the output merger stage (the output of the pipeline)
         commandList->OMSetRenderTargets(1, &_rtvHandle, FALSE, nullptr);
         this->rtvHandle = _rtvHandle;
+        
+        // get a handle to the depth/stencil buffer
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(
+            dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart());
+        // set the render target for the output merger stage (the output of the pipeline)
+        commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
     void Context::ClearRenderTargetView(std::array<float, 4> rgba)
     {
+        commandList->ClearDepthStencilView(dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart(),
+            D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         commandList->ClearRenderTargetView(rtvHandle, rgba.data(), 0, nullptr);
     }
     void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
@@ -223,6 +232,51 @@ namespace dx3d
             assert(hr == S_OK);
             fenceValue[i] = 0; // set the initial fence value to 0
         }
+        //create the depth-stencil buffer, one for each frame
+        depthStencilBuffer.resize(FRAMEBUFFER_COUNT);
+        dsDescriptorHeap.resize(FRAMEBUFFER_COUNT);
+        D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            // create a depth stencil descriptor heap so we can get a pointer to the depth stencil buffer
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+            dsvHeapDesc.NumDescriptors = 1;
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap[i]));
+            assert(hr == S_OK);
+            std::wstring name = Concatenate(L"depthStencilDescriptorHeap", i);
+            dsDescriptorHeap[i]->SetName(name.c_str());
+        }
+        CD3DX12_HEAP_PROPERTIES depthStencilHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, 
+            w, h, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            device->CreateCommittedResource(
+                &depthStencilHeapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                &depthStencilResourceDesc,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                &depthOptimizedClearValue,
+                IID_PPV_ARGS(&depthStencilBuffer[i])
+            );
+            std::wstring name = Concatenate(L"depthBuffer", i);
+            depthStencilBuffer[i]->SetName(name.c_str());
+            device->CreateDepthStencilView(depthStencilBuffer[i].Get(),
+                &depthStencilDesc,
+                dsDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart());
+
+        }
+
     }
 
     ComPtr<ID3D12RootSignature> Context::CreateRootSignature(const std::wstring& name)

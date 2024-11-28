@@ -41,8 +41,30 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     // Must be equal to the one used by the swap chain
     DXGI_SAMPLE_DESC sampleDesc = {};
     sampleDesc.Count = 1; // multisample count (no multisampling, so we just put 1, since we still need 1 sample)
+    //configure depth for the pipeline
+    D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {};
+    depthStencilDesc.DepthEnable = TRUE;                       // Enable depth testing
+    depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL; // Allow depth writes
+    depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;   // Depth test passes if the incoming depth is less than the current depth
+    depthStencilDesc.StencilEnable = TRUE;                    // Enable stencil testing
+    depthStencilDesc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK; // Default read mask (0xFF)
+    depthStencilDesc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK; // Default write mask (0xFF)
+    // Configure stencil operations for front-facing polygons
+    depthStencilDesc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP; // Keep the stencil value if stencil test fails
+    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP; // Keep the stencil value if depth test fails
+    depthStencilDesc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP; // Keep the stencil value if stencil test passes
+    depthStencilDesc.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS; // Always pass stencil test for front faces
+    // Configure stencil operations for back-facing polygons
+    depthStencilDesc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;  // Keep the stencil value if stencil test fails
+    depthStencilDesc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP; // Keep the stencil value if depth test fails
+    depthStencilDesc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP; // Keep the stencil value if stencil test passes
+    depthStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_NEVER; // Never pass stencil test for back faces
+
+
     //create the pipeline state object
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {}; // a structure to define a pso
+    psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    psoDesc.DepthStencilState = depthStencilDesc;
     psoDesc.InputLayout = inputLayoutDesc; // the structure describing our input layout
     psoDesc.pRootSignature = rootSignature.Get(); // the root signature that describes the input data this pso needs
     psoDesc.VS = vertexShaderBytecode; // structure describing where to find the vertex shader bytecode and how large it is
