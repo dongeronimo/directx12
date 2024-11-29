@@ -80,5 +80,5 @@ void transforms::ModelMatrix::UploadData(std::vector<Transform*> transforms,
     int frameId,  Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
 {
     //upload the data to the gpu. mind the current frame
-
+    std::vector< ModelMatrix
 }
