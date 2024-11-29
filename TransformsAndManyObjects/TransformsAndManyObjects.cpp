@@ -49,7 +49,15 @@ int main()
 	myPipeline->scissorRect.top = 0;
 	myPipeline->scissorRect.right = W;
 	myPipeline->scissorRect.bottom = H;
-
+	//handle window resizing
+	window.mOnResize = [&myPipeline, &ctx](int newW, int newH) {
+		//TODO: Resize is freezing the app
+		ctx->Resize(newW, newH);
+		myPipeline->viewport.Width = newW;
+		myPipeline->viewport.Height = newH;
+		myPipeline->scissorRect.right = newW;
+		myPipeline->scissorRect.bottom = newH;
+	};
 	//set onIdle handle to deal with rendering
 	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName,
 		&myPipeline, &mesh, &viewProjection]() {

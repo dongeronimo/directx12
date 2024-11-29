@@ -178,6 +178,90 @@ namespace transforms
         device->CreateConstantBufferView(&cbvDesc, descriptorHeap->GetCPUDescriptorHandleForHeapStart());
     }
 
+    void Context::Resize(int w, int h)
+    {
+        WaitAllFrames();
+
+        //recreate render targets
+        for (auto& x : swapChainRenderTargets) {
+            x.ReleaseAndGetAddressOf();
+        }
+        swapChainRenderTargets.clear();
+        swapChain->ResizeBuffers(FRAMEBUFFER_COUNT, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        swapChainRenderTargets = common::CreateRenderTargets(rtvData, swapChain, device);
+        //recreate depth buffer
+        for (auto& x : dsDescriptorHeap) {
+            x.ReleaseAndGetAddressOf();
+        }
+        dsDescriptorHeap.clear();
+        dsDescriptorHeap.resize(FRAMEBUFFER_COUNT);
+        for (auto& x : depthStencilBuffer) {
+            x.ReleaseAndGetAddressOf();
+        }
+        depthStencilBuffer.clear();
+        depthStencilBuffer.resize(FRAMEBUFFER_COUNT);
+        D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            // create a depth stencil descriptor heap so we can get a pointer to the depth stencil buffer
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+            dsvHeapDesc.NumDescriptors = 1;
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            HRESULT hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap[i]));
+            assert(hr == S_OK);
+            std::wstring name = Concatenate(L"depthStencilDescriptorHeap", i);
+            dsDescriptorHeap[i]->SetName(name.c_str());
+        }
+        CD3DX12_HEAP_PROPERTIES depthStencilHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, //format
+            w, h, // w/h 
+            1, //array size 
+            1, //mip levels 
+            1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            device->CreateCommittedResource(
+                &depthStencilHeapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                &depthStencilResourceDesc,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                &depthOptimizedClearValue,
+                IID_PPV_ARGS(&depthStencilBuffer[i])
+            );
+            std::wstring name = Concatenate(L"depthBuffer", i);
+            depthStencilBuffer[i]->SetName(name.c_str());
+            device->CreateDepthStencilView(depthStencilBuffer[i].Get(),
+                &depthStencilDesc,
+                dsDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart());
+
+        }
+    }
+
+    void Context::WaitAllFrames()
+    {
+        std::vector<HANDLE> fenceEvents(FRAMEBUFFER_COUNT);
+        for (UINT i = 0; i < FRAMEBUFFER_COUNT; ++i) {
+            const UINT64 currentFenceValue = fenceValue[i];
+            commandQueue->Signal(fence[i].Get(), currentFenceValue);
+            fenceValue[i]++;
+
+            if (fence[i]->GetCompletedValue() < currentFenceValue) {
+                fence[i]->SetEventOnCompletion(currentFenceValue, fenceEvents[i]);
+                WaitForSingleObject(fenceEvents[i], INFINITE);
+            }
+        }
+    }
+
     Context::Context(int w, int h, HWND hwnd)
     {
         HRESULT hr;

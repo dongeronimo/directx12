@@ -68,5 +68,7 @@ namespace transforms
             D3D12_CONSTANT_BUFFER_VIEW_DESC& cbvDesc,
             Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
             size_t constantBufferSize);
+        void Resize(int w, int h);
+        void WaitAllFrames();
     };
 }
