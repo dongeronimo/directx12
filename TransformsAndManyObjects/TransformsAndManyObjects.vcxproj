@@ -140,15 +140,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="direct3d_context.cpp" />
+    <ClCompile Include="model_matrix.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="TransformsAndManyObjects.cpp" />
     <ClCompile Include="view_projection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="direct3d_context.h" />
+    <ClInclude Include="model_matrix.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pipeline.h" />
+    <ClInclude Include="transform.h" />
     <ClInclude Include="view_projection.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="transforms_pixel_shader.hlsl" />
+    <FxCompile Include="transforms_vertex_shader.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

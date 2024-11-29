@@ -27,6 +27,9 @@
     <ClCompile Include="view_projection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="model_matrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -41,5 +44,15 @@
     <ClInclude Include="view_projection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="model_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="transforms_vertex_shader.hlsl" />
+    <FxCompile Include="transforms_pixel_shader.hlsl" />
   </ItemGroup>
 </Project>

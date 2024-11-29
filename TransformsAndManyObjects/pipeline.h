@@ -3,6 +3,8 @@
 //using Microsoft::WRL::ComPtr;
 namespace transforms
 {
+	class ModelMatrix;
+	class Context;
 	/// <summary>
 	/// Stores root signatures in a key-value table.
 	/// It could be optimized by using hashes instead of strings, but for now let us use
@@ -37,6 +39,7 @@ namespace transforms
 		void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList);
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPipeline;
+
 	};
 }
 

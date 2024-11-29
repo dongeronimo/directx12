@@ -1,5 +1,8 @@
 #include "Pipeline.h"
 #include "../Common/input_layout_service.h"
+#include "direct3d_context.h"
+#include "model_matrix.h"
+
 void transforms::RootSignatureService::Add(const std::wstring& k, Microsoft::WRL::ComPtr<ID3D12RootSignature> v)
 {
     assert(mRootSignatureTable.count(k) == 0);

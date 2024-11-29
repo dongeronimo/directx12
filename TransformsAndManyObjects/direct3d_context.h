@@ -39,6 +39,7 @@ namespace transforms
         // This is a heap for our depth/stencil buffer descriptor
         std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>> dsDescriptorHeap; 
     public:
+        int GetFrameIndex()const { return frameIndex; }
         Context(int w, int h, HWND hwnd);
         Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateRootSignature(const std::wstring& name);
         Microsoft::WRL::ComPtr<ID3D12Device> GetDevice()const {
