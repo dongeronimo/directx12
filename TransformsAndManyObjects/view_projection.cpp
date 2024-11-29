@@ -10,7 +10,7 @@ struct ConstantBufferData {
 };
 constexpr size_t ConstantBufferSize = (sizeof(ConstantBufferData) + 255) & ~255;
 
-common::ViewProjection::ViewProjection( Context& ctx)
+transforms::ViewProjection::ViewProjection( Context& ctx)
 {
 	//creates the buffer resource to store the constant bufffer on the gpu
 	CD3DX12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -27,14 +27,14 @@ common::ViewProjection::ViewProjection( Context& ctx)
 	descriptorHeap->SetName(L"ViewProjectionHeap");
 }
 
-void common::ViewProjection::SetPerspective(float fovInDegrees, float aspectRatio, float nearZ, float farZ)
+void transforms::ViewProjection::SetPerspective(float fovInDegrees, float aspectRatio, float nearZ, float farZ)
 {
 	this->fov = fovInDegrees * M_PI / 180.0f;
 	this->aspectRatio = aspectRatio;
 	this->nearZ = nearZ;
 	this->farZ = farZ;
 }
-void common::ViewProjection::LookAt(DirectX::FXMVECTOR EyePosition, DirectX::FXMVECTOR FocusPosition, DirectX::FXMVECTOR UpDirection)
+void transforms::ViewProjection::LookAt(DirectX::FXMVECTOR EyePosition, DirectX::FXMVECTOR FocusPosition, DirectX::FXMVECTOR UpDirection)
 {
 	//view matrix using look at
 	XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(EyePosition, FocusPosition, UpDirection);
@@ -44,7 +44,7 @@ void common::ViewProjection::LookAt(DirectX::FXMVECTOR EyePosition, DirectX::FXM
 	this->viewProjectionMatrix = DirectX::XMMatrixMultiply(viewMatrix, projectionMatrix);
 }
 
-void common::ViewProjection::StoreInBuffer()
+void transforms::ViewProjection::StoreInBuffer()
 {
 	// Allocate memory for the constant buffer data.
 	ConstantBufferData cbData;

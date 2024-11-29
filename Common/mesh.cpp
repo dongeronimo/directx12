@@ -7,19 +7,19 @@
 using Microsoft::WRL::ComPtr;
 
 
-myd3d::Mesh::Mesh(MeshData& data, 
+common::Mesh::Mesh(MeshData& data, 
     Microsoft::WRL::ComPtr<ID3D12Device> device,
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue):
     mNumberOfIndices(data.indices.size())
 {
-    std::vector<dx3d::Vertex> vertexes(data.vertices.size());
+    std::vector<common::Vertex> vertexes(data.vertices.size());
     for (auto i = 0; i < data.vertices.size(); i++)
     {
         vertexes[i].pos = data.vertices[i];
         vertexes[i].normal = data.normals[i];
         vertexes[i].uv = data.uv[i];
     }
-	int vBufferSize = vertexes.size() * sizeof(dx3d::Vertex);
+	int vBufferSize = vertexes.size() * sizeof(common::Vertex);
     CD3DX12_HEAP_PROPERTIES vertexHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     CD3DX12_RESOURCE_DESC vertexResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vBufferSize);
     device->CreateCommittedResource(
@@ -83,7 +83,7 @@ myd3d::Mesh::Mesh(MeshData& data,
     indexData.RowPitch = iBufferSize; // size of all our index buffer
     indexData.SlicePitch = iBufferSize; // also the size of our index buffer
     //now we run the commands
-    myd3d::RunCommands(
+    common::RunCommands(
         device.Get(),
         commandQueue.Get(),
         [&vertexBufferUploadHeap, this, &vertexData, &indexBufferUploadHeap, &indexData](ComPtr<ID3D12GraphicsCommandList> lst)
@@ -119,7 +119,7 @@ myd3d::Mesh::Mesh(MeshData& data,
             lst->ResourceBarrier(1, &secondIndexBufferResourceBarrier);
         });
     mVertexBufferView.BufferLocation = mVertexBuffer->GetGPUVirtualAddress();
-    mVertexBufferView.StrideInBytes = sizeof(dx3d::Vertex);
+    mVertexBufferView.StrideInBytes = sizeof(common::Vertex);
     mVertexBufferView.SizeInBytes = vBufferSize;
 
     mIndexBufferView.BufferLocation = mIndexBuffer->GetGPUVirtualAddress();

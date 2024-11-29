@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-namespace dx3d
+namespace common
 {
 	namespace input_layout_service
 	{

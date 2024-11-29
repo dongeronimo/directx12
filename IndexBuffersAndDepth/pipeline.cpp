@@ -1,18 +1,18 @@
 #include "Pipeline.h"
 #include "../Common/input_layout_service.h"
-void dx3d::RootSignatureService::Add(const std::wstring& k, Microsoft::WRL::ComPtr<ID3D12RootSignature> v)
+void common::RootSignatureService::Add(const std::wstring& k, Microsoft::WRL::ComPtr<ID3D12RootSignature> v)
 {
     assert(mRootSignatureTable.count(k) == 0);
     mRootSignatureTable.insert({ k, v });
 }
 
-Microsoft::WRL::ComPtr<ID3D12RootSignature> dx3d::RootSignatureService::Get(const std::wstring& k) const
+Microsoft::WRL::ComPtr<ID3D12RootSignature> common::RootSignatureService::Get(const std::wstring& k) const
 {
     assert(mRootSignatureTable.count(k) == 1);
     return mRootSignatureTable.at(k);
 }
 
-dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
+common::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     const std::wstring& pixelShaderFileName,
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
     Microsoft::WRL::ComPtr<ID3D12Device> device,
@@ -34,7 +34,7 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
     pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     //create input layout
-    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = dx3d::input_layout_service::PositionsNormalsAndUVs();
+    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = common::input_layout_service::PositionsNormalsAndUVs();
     D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
     inputLayoutDesc.NumElements = inputLayout.size();
     inputLayoutDesc.pInputElementDescs = inputLayout.data();
@@ -81,7 +81,7 @@ dx3d::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     mPipeline->SetName(name.c_str());
 }
 
-void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
+void common::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView, 
     D3D12_INDEX_BUFFER_VIEW indexBufferView,
     int numberOfIndices)
@@ -91,7 +91,7 @@ void dx3d::Pipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandL
     commandList->DrawIndexedInstanced(numberOfIndices, 1, 0, 0, 0);
 }
 
-void dx3d::Pipeline::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
+void common::Pipeline::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
 {
     commandList->SetPipelineState(mPipeline.Get());
     commandList->RSSetViewports(1, &viewport);

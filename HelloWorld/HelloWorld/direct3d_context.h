@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "../../Common/d3d_utils.h"
 //using Microsoft::WRL::ComPtr;
-namespace dx3d
+namespace common
 {
     class Pipeline;
 
@@ -22,7 +22,7 @@ namespace dx3d
         // current render target view we are on
         int frameIndex = INT_MAX;
 
-        std::shared_ptr<myd3d::RenderTargetViewData> rtvData = nullptr;
+        std::shared_ptr<common::RenderTargetViewData> rtvData = nullptr;
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
         std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> swapChainRenderTargets;
         //Represents the allocations of storage for graphics processing unit (GPU) commands, one per frame

@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 //using Microsoft::WRL::ComPtr;
-namespace common
+namespace transforms
 {
 	/// <summary>
 	/// Stores root signatures in a key-value table.

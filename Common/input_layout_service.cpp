@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "input_layout_service.h"
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::OnlyVertexes()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::OnlyVertexes()
 {
     std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout(
         {
@@ -18,7 +18,7 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::OnlyVertexes()
     return inputLayout;
 }
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsAndColors()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::PositionsAndColors()
 {
 
     std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout =
@@ -29,7 +29,7 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsAndCo
     return inputLayout;
 }
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsNormalsAndUVs()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::PositionsNormalsAndUVs()
 {
     constexpr size_t vertexSize = sizeof(float) * 3;
     constexpr size_t vertexOffset = 0;

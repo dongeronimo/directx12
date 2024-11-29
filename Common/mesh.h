@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "mesh_load.h"
-namespace myd3d
+namespace common
 {
 	class Mesh
 	{

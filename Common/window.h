@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-namespace myd3d
+namespace common
 {
 	/// <summary>
 	/// A window.

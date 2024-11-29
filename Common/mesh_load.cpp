@@ -18,15 +18,15 @@ DirectX::XMFLOAT2 removeZ(DirectX::XMFLOAT3 vec)
 }
 
 
-std::vector<myd3d::MeshData> myd3d::LoadMeshes(const std::string& filename)
+std::vector<common::MeshData> common::LoadMeshes(const std::string& filename)
 {
     Assimp::Importer importer;
     const aiScene* scene = LoadScene(importer, filename);
-    std::vector<myd3d::MeshData> result(scene->mNumMeshes);
+    std::vector<common::MeshData> result(scene->mNumMeshes);
     for (int m = 0; m < scene->mNumMeshes; m++)
     {
         aiMesh* currMesh = scene->mMeshes[m];
-        myd3d::MeshData& md = result[m];
+        common::MeshData& md = result[m];
         //i assume that all vertexes have normals and uv
         md.normals.resize(currMesh->mNumVertices);
         md.vertices.resize(currMesh->mNumVertices);

@@ -21,7 +21,7 @@ LRESULT CALLBACK __WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		wParam,
 		lParam);
 }
-namespace myd3d
+namespace common
 {
 	Window::Window(HINSTANCE hInstance, 
 		const std::wstring& className,

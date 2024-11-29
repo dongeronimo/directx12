@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "../Common/d3d_utils.h"
 //using Microsoft::WRL::ComPtr;
-namespace common
+namespace transforms
 {
     class Pipeline;
     class ViewProjection;
@@ -44,7 +44,7 @@ namespace common
         Microsoft::WRL::ComPtr<ID3D12Device> GetDevice()const {
             return device;
         }
-        void CreateVertexBufferFromData(std::vector<Vertex>& _vertices,
+        void CreateVertexBufferFromData(std::vector<common::Vertex>& _vertices,
             Microsoft::WRL::ComPtr<ID3D12Resource>& _vertexBuffer,
             D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView,
             const std::wstring& name);
