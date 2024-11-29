@@ -18,6 +18,7 @@ transforms::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     Microsoft::WRL::ComPtr<ID3D12Device> device,
     const std::wstring& name)
 {
+    std::filesystem::path cwd = std::filesystem::current_path();
     HRESULT hr;
     ID3DBlob* vertexShader;
     hr = D3DReadFileToBlob(vertexShaderFileName.c_str(), &vertexShader);
