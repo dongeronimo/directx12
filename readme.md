@@ -12,9 +12,10 @@ and build all exporters.
 7) open directx-headers with cmake, set output directory to DirectX-Headers\Build
 8) generate directx-headers project
 9) open directx-headers project, run ALL_BUILD, close, then open VS again as elevated user, and run INSTALL
-10) run symbolic_links.bat as admin
-11) open MyDirectx12.sln visual studio 2024
-12) build
+10) open MyDirectx12.sln visual studio 2024
+11) build but don't run, because the assets won't be available
+12) run symbolic_links.bat as admin
+13) now you can run
 
 ## Projects
 - Common: code that's shared between the projects
