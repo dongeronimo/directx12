@@ -3,7 +3,7 @@
 ## Setup
 1) Install windows sdk
 2) clone
-3) init submodules
+3) update submodules: git submodule update --init --recursive
 4) open assimp project with cmake, set output directory to ./assimp-build
 5) Add entry ASSIMP_BUILD_FBX_IMPORTER = true, ASSIMP_BUILD_DRACO = true ASSIMP_BUILD_GLTF_IMPORTER = true and disable build all importers
 and build all exporters.
