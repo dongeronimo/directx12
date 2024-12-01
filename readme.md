@@ -20,6 +20,11 @@ and build all exporters.
 Remember that if you want a build release you have to build assimp and directxheaders as release because they need the .libs
 Also, remember to copy the assimp dlls from it's install folder in program files to the same folder that the .exes are.
 
+Troubleshooting:
+- Fail to load shaders: the .cso, by default go to $(SolutionDir)$(Platform)\$(Configuration). Make sure that the project's working directory is $(SolutionDir)$(Platform)\$(Configuration).
+- Fail to build release: compile assimp and directxmath as release.
+- Crashes due to lack of assimp dll: copy the dll from assimp install dir (the one in program files) to the same dir that the executable is.
+
 ## Projects
 - Common: code that's shared between the projects
 - HelloWorld: first triangle. how to setup a window, create the directx infrastructure and put something on the screen
