@@ -13,9 +13,12 @@ and build all exporters.
 8) generate directx-headers project
 9) open directx-headers project, run ALL_BUILD, close, then open VS again as elevated user, and run INSTALL
 10) open MyDirectx12.sln visual studio 2024
-11) build both debug and release but run neither, because the assets won't be available
+11) build debug but don't run, because the assets won't be available
 12) run symbolic_links.bat as admin
 13) now you can run
+
+Remember that if you want a build release you have to build assimp and directxheaders as release because they need the .libs
+Also, remember to copy the assimp dlls from it's install folder in program files to the same folder that the .exes are.
 
 ## Projects
 - Common: code that's shared between the projects
