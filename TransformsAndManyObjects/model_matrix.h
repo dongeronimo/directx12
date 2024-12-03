@@ -15,7 +15,7 @@ namespace transforms
 		/// <param name="frameId"></param>
 		/// <param name="commandList"></param>
 		void UploadData(std::vector<Transform*>& transforms, int frameId, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList);
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DescriptorHeap(int frameId)const {
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DescriptorHeap(int frameId) {
 			return srvHeap[frameId];
 		}
 	private:

@@ -40,7 +40,7 @@ int main()
 	std::unique_ptr<transforms::Context> ctx = std::make_unique<transforms::Context>(W, H, window.Hwnd());
 
 	LoadMeshes(*ctx);
-
+	mModelMatrix = std::make_unique<transforms::ModelMatrix>(*ctx);
 	std::unique_ptr<transforms::RootSignatureService> rootSignatureService = std::make_unique<transforms::RootSignatureService>();
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 
@@ -73,7 +73,7 @@ int main()
 
 	//create the scene
 	std::shared_ptr<GameObject> obj1 = std::make_shared<GameObject>();
-	obj1->position = { 0.0f, 0.0f, 0.0f };
+	obj1->position = { -2.0f, 0.0f, 0.0f };
 	obj1->scale = { 1.0f, 1.0f, 1.0f };
 	obj1->rotation = DirectX::XMQuaternionIdentity();
 	obj1->mesh = 0;
@@ -99,6 +99,7 @@ int main()
 	//set onIdle handle to deal with rendering
 	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName,
 		&myPipeline, &viewProjection]() {
+		assert(mModelMatrix != nullptr);
 		//wait until i can interact with this frame again
 		ctx->WaitForPreviousFrame();
 		//reset the allocator and the command list
@@ -132,7 +133,7 @@ int main()
 		{
 			auto go = reinterpret_cast<GameObject*>(lstTransforms[i]);
 			auto mesh = gMeshTable[go->mesh];
-			ctx->GetCommandList()->SetGraphicsRoot32BitConstant(0, i, 0);
+			ctx->GetCommandList()->SetGraphicsRoot32BitConstant(1, i, 0);
 			myPipeline->DrawInstanced(ctx->GetCommandList(),
 				mesh->VertexBufferView(),
 				mesh->IndexBufferView(),

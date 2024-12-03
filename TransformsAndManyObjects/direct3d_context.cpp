@@ -139,10 +139,14 @@ namespace transforms
         //bind the root signature
         commandList->SetGraphicsRootSignature(rs.Get());
         //bind the descriptor table (SRV for the structured buffer that holds the model matrices)
-        commandList->SetGraphicsRootDescriptorTable(0, //bind to t0
+        ID3D12DescriptorHeap* h = modelMatricesData.DescriptorHeap(frameIndex).Get();
+        commandList->SetDescriptorHeaps(1, &h);
+        //Model Matrices are param #0
+        commandList->SetGraphicsRootDescriptorTable(0, 
             modelMatricesData.DescriptorHeap(frameIndex)->GetGPUDescriptorHandleForHeapStart());
-        //bind the ConstantBuffer (for view/projection)
-        commandList->SetGraphicsRootConstantBufferView(1,//bind to b1
+        // the root constants are in param #1
+        // the constant buffer for view/proj data is in #2
+        commandList->SetGraphicsRootConstantBufferView(2,
             viewProjectionData.GetConstantBuffer()->GetGPUVirtualAddress());
     }
     void Context::BindPipeline(std::shared_ptr<Pipeline> pipe)

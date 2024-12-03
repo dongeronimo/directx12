@@ -17,19 +17,21 @@ constexpr UINT bufferSize = (numMatrices * matrixSize + 255) & ~255;
 transforms::ModelMatrix::ModelMatrix(Context& ctx)
 {
     //creates the gpu buffer that'll hold the data
-    CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
-    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+    CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
+        bufferSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
     structuredBuffer.resize(FRAMEBUFFER_COUNT);
     srvHeap.resize(FRAMEBUFFER_COUNT);
     for (auto i = 0; i < FRAMEBUFFER_COUNT; i++)
     {
-        ctx.GetDevice()->CreateCommittedResource(
+        HRESULT r = ctx.GetDevice()->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &bufferDesc,
             D3D12_RESOURCE_STATE_COMMON, // Initial state
             nullptr,
             IID_PPV_ARGS(&structuredBuffer[i]));
+        assert(r == S_OK);
         auto n0 = Concatenate(L"ModelMatrixBuffer", i);
         structuredBuffer[i]->SetName(n0.c_str());
         //the heap to hold the views that we'll need.
