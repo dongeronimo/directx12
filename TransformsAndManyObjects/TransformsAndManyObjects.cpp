@@ -60,16 +60,16 @@ int main()
 	// Fill out the Viewport
 	myPipeline->viewport.TopLeftX = 0;
 	myPipeline->viewport.TopLeftY = 0;
-	myPipeline->viewport.Width = W;
-	myPipeline->viewport.Height = H;
+	myPipeline->viewport.Width = static_cast<float>(W);
+	myPipeline->viewport.Height = static_cast<float>(H);
 	myPipeline->viewport.MinDepth = 0.0f;
 	myPipeline->viewport.MaxDepth = 1.0f;
 
 	// Fill out a scissor rect
 	myPipeline->scissorRect.left = 0;
 	myPipeline->scissorRect.top = 0;
-	myPipeline->scissorRect.right = W;
-	myPipeline->scissorRect.bottom = H;
+	myPipeline->scissorRect.right = static_cast<float>(W);
+	myPipeline->scissorRect.bottom = static_cast<float>(H);
 
 	//create the scene
 	std::shared_ptr<GameObject> obj1 = std::make_shared<GameObject>();
@@ -129,7 +129,7 @@ int main()
 		//bind the pipeline
 		ctx->BindPipeline(myPipeline);
 		//draw the meshes using the pipeline
-		for (auto i = 0; i < lstTransforms.size(); i++)
+		for (ULONG i = 0; i < lstTransforms.size(); i++)
 		{
 			auto go = reinterpret_cast<GameObject*>(lstTransforms[i]);
 			auto mesh = gMeshTable[go->mesh];

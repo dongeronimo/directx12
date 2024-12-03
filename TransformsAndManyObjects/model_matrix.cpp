@@ -92,7 +92,7 @@ void transforms::ModelMatrix::UploadData(std::vector<Transform*>& transforms,
         XMMATRIX scaleMatrix = XMMatrixScaling(t->scale.x, t->scale.y, t->scale.z);
         XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(t->rotation);
         XMMATRIX translationMatrix = XMMatrixTranslation(t->position.x, t->position.y, t->position.z);
-        XMMATRIX __modelMatrix = DirectX::XMMatrixTranspose(/*scaleMatrix * rotationMatrix **/ translationMatrix);
+        XMMATRIX __modelMatrix = DirectX::XMMatrixTranspose(scaleMatrix * rotationMatrix * translationMatrix);
         XMStoreFloat4x4(&structs[t->id].matrix, __modelMatrix);
     }
     //copy the staging buffer
