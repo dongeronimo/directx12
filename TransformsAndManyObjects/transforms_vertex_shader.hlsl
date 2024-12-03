@@ -32,9 +32,16 @@ cbuffer ConstantBuffer : register(b1)
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
+    // Get the model matrix for the current instance
     float4x4 modelMatrix = ModelMatrices[matrixIndex].mat;
-    float4 worldPosition = mul(float4(input.pos, 1.0f), modelMatrix);
-    output.pos = mul(worldPosition, viewProjectionMatrix);
-    output.color = float4(input.uv, 1, 1);
+
+    // Combine model matrix with view-projection matrix to form MVP
+    float4x4 mvpMatrix = mul(viewProjectionMatrix, modelMatrix);
+
+    // Transform the vertex position using the MVP matrix
+    output.pos = mul(float4(input.pos, 1.0f), mvpMatrix);
+
+    // Pass UV as color for debugging or other purposes
+    output.color = float4(input.uv, 1.0f, 1.0f);
     return output;
 }

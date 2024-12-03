@@ -45,8 +45,8 @@ int main()
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 
 	transforms::ViewProjection viewProjection(*ctx);
-	viewProjection.SetPerspective(45.0f, (float)W / (float)H, 0.01f, 100.f);
-	viewProjection.LookAt({ 3.0f, 5.0f, 7.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+	viewProjection.SetPerspective(60.0f, (float)W / (float)H, 0.01f, 100.f);
+	viewProjection.LookAt({ 1.0f, 0.0f, 14.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
 	std::shared_ptr<transforms::Pipeline> myPipeline = std::make_shared<transforms::Pipeline>(
@@ -73,13 +73,13 @@ int main()
 
 	//create the scene
 	std::shared_ptr<GameObject> obj1 = std::make_shared<GameObject>();
-	obj1->position = { -2.0f, 0.0f, 0.0f };
+	obj1->position = { -0.5f, 0.0f, 0.0f };
 	obj1->scale = { 1.0f, 1.0f, 1.0f };
 	obj1->rotation = DirectX::XMQuaternionIdentity();
 	obj1->mesh = 0;
 	obj1->id = 0;
 	std::shared_ptr<GameObject> obj2 = std::make_shared<GameObject>();
-	obj2->position = { 2.0f, 0.0f, 0.0f };
+	obj2->position = { 1.0f, 0.0f, 0.0f };
 	obj2->scale = { 1.0f, 1.0f, 1.0f };
 	obj2->rotation = DirectX::XMQuaternionIdentity();
 	obj2->mesh = 1;
