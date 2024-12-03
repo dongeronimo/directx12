@@ -8,7 +8,16 @@ namespace transforms
 	{
 	public:
 		ModelMatrix(Context& ctx);
-		void UploadData(std::vector<Transform*> transforms, int frameId, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList);
+		/// <summary>
+		/// Remember that the transforms MUST BE on the same ordering here and where the draw call is done.
+		/// </summary>
+		/// <param name="transforms"></param>
+		/// <param name="frameId"></param>
+		/// <param name="commandList"></param>
+		void UploadData(std::vector<Transform*>& transforms, int frameId, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList);
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DescriptorHeap(int frameId)const {
+			return srvHeap[frameId];
+		}
 	private:
 		std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> structuredBuffer;
 		//Shader Resource View heap

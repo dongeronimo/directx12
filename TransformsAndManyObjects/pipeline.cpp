@@ -38,7 +38,7 @@ transforms::Pipeline::Pipeline(const std::wstring& vertexShaderFileName,
     pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
     pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     //create input layout
-    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = common::input_layout_service::PositionsNormalsAndUVs();
+    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = common::input_layout_service::DefaultVertexDataAndInstanceId();
     D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
     inputLayoutDesc.NumElements = inputLayout.size();
     inputLayoutDesc.pInputElementDescs = inputLayout.data();

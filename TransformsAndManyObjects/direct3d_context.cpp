@@ -2,6 +2,7 @@
 #include "../Common/d3d_utils.h"
 #include "pipeline.h"
 #include "view_projection.h"
+#include "model_matrix.h"
 #include "../Common/concatenate.h"
 using Microsoft::WRL::ComPtr;
 using namespace common;
@@ -132,10 +133,16 @@ namespace transforms
         commandList->ClearRenderTargetView(rtvHandle, rgba.data(), 0, nullptr);
     }
     void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
-        ViewProjection& viewProjectionData)
+        ViewProjection& viewProjectionData,
+        ModelMatrix& modelMatricesData)
     {
+        //bind the root signature
         commandList->SetGraphicsRootSignature(rs.Get());
-        commandList->SetGraphicsRootConstantBufferView(0,//bind to b0
+        //bind the descriptor table (SRV for the structured buffer that holds the model matrices)
+        commandList->SetGraphicsRootDescriptorTable(0, //bind to t0
+            modelMatricesData.DescriptorHeap(frameIndex)->GetGPUDescriptorHandleForHeapStart());
+        //bind the ConstantBuffer (for view/projection)
+        commandList->SetGraphicsRootConstantBufferView(1,//bind to b1
             viewProjectionData.GetConstantBuffer()->GetGPUVirtualAddress());
     }
     void Context::BindPipeline(std::shared_ptr<Pipeline> pipe)
@@ -371,12 +378,24 @@ namespace transforms
 
     ComPtr<ID3D12RootSignature> Context::CreateRootSignature(const std::wstring& name)
     {
-        CD3DX12_ROOT_PARAMETER rootParam[1] = {};
-        rootParam[0].InitAsConstantBufferView(0);  // Register b0
+        //the table of root signature parameters
+        std::array<CD3DX12_ROOT_PARAMETER, 3> rootParams;
+        //1) ModelMatrices 
+        CD3DX12_DESCRIPTOR_RANGE srvRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, //it's a shader resource view 
+            1, 
+            0); //register t0
+        rootParams[0].InitAsDescriptorTable(1, &srvRange);
+        //2) RootConstants
+        rootParams[1].InitAsConstants(1, //inits one dword (that'll carry the instanceId)
+            0);//register b0
+        //ConstantBuffer (view/projection data)
+        rootParams[2].InitAsConstantBufferView(1); //at register b1
+
         //create root signature
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(1,//number of parameters
-            rootParam,//parameter list
+        rootSignatureDesc.Init(rootParams.size(),//number of parameters
+            rootParams.data(),//parameter list
             0,//number of static samplers
             nullptr,//static samplers list
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT //flags

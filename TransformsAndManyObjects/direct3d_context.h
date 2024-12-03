@@ -6,6 +6,7 @@ namespace transforms
 {
     class Pipeline;
     class ViewProjection;
+    class ModelMatrix;
     class Context
     {
     private:
@@ -55,7 +56,8 @@ namespace transforms
         void SetCurrentOutputMergerTarget();
         void ClearRenderTargetView(std::array<float, 4> rgba);
         void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
-            ViewProjection& viewProjectionData);
+            ViewProjection& viewProjectionData,
+            ModelMatrix& modelMatricesData);
         void BindPipeline(std::shared_ptr<Pipeline> pipe);
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList()const {
             return commandList;

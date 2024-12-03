@@ -50,11 +50,10 @@ int main()
 
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
 	std::shared_ptr<transforms::Pipeline> myPipeline = std::make_shared<transforms::Pipeline>(
-		L"index_buffers_and_depth_vertex_shader.cso",
-		L"index_buffers_and_depth_pixel_shader.cso",
+		L"transforms_vertex_shader.cso",
+		L"transforms_pixel_shader.cso",
 		rootSignatureService->Get(myRootSignatureName),
 		ctx->GetDevice(),
-		*ctx,
 		L"HelloWorldPipeline"
 	);
 
@@ -78,11 +77,13 @@ int main()
 	obj1->scale = { 1.0f, 1.0f, 1.0f };
 	obj1->rotation = DirectX::XMQuaternionIdentity();
 	obj1->mesh = 0;
+	obj1->id = 0;
 	std::shared_ptr<GameObject> obj2 = std::make_shared<GameObject>();
 	obj2->position = { 2.0f, 0.0f, 0.0f };
 	obj2->scale = { 1.0f, 1.0f, 1.0f };
 	obj2->rotation = DirectX::XMQuaternionIdentity();
 	obj2->mesh = 1;
+	obj2->id = 1;
 
 	gGameObjects = { obj1, obj2 };
 
@@ -117,17 +118,26 @@ int main()
 		{
 			lstTransforms[i] = gGameObjects[i].get();
 		}
+		//update the model matrix buffer in the gpu
 		mModelMatrix->UploadData(lstTransforms, ctx->GetFrameIndex(), ctx->GetCommandList());
-		//bind root signature
-		ctx->BindRootSignature(rootSignatureService->Get(myRootSignatureName), viewProjection);
 		viewProjection.StoreInBuffer();
+		//bind root signature
+		ctx->BindRootSignature(rootSignatureService->Get(myRootSignatureName), 
+			viewProjection,
+			*mModelMatrix);
 		//bind the pipeline
 		ctx->BindPipeline(myPipeline);
 		//draw the meshes using the pipeline
-		//myPipeline->DrawInstanced(ctx->GetCommandList(),
-		//	mesh->VertexBufferView(),
-		//	mesh->IndexBufferView(),
-		//	mesh->NumberOfIndices());
+		for (auto i = 0; i < lstTransforms.size(); i++)
+		{
+			auto go = reinterpret_cast<GameObject*>(lstTransforms[i]);
+			auto mesh = gMeshTable[go->mesh];
+			ctx->GetCommandList()->SetGraphicsRoot32BitConstant(0, i, 0);
+			myPipeline->DrawInstanced(ctx->GetCommandList(),
+				mesh->VertexBufferView(),
+				mesh->IndexBufferView(),
+				mesh->NumberOfIndices());
+		}
 		//...
 		//now that we drew everything, transition the rtv to presentation
 		ctx->TransitionCurrentRenderTarget(D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -149,16 +159,19 @@ int main()
 
 void LoadMeshes(transforms::Context& ctx) {
 	auto monkeyMeshData = common::LoadMeshes("assets/monkey.glb")[0];
-	std::shared_ptr<common::Mesh> monkeyMesh = std::make_shared<common::Mesh>(monkeyMeshData,
+	std::shared_ptr<common::Mesh> monkeyMesh = std::make_shared<common::Mesh>(
+		monkeyMeshData,
 		ctx.GetDevice(), ctx.GetCommandQueue());
 	gMeshTable.insert({ 0, monkeyMesh });
 
-	auto cubeMeshData = common::LoadMeshes("assets/cube.glb");
-	std::shared_ptr<common::Mesh> cubeMesh = std::make_shared<common::Mesh>(cubeMeshData,
-		ctx.GetDevice(), ctx.GetCommandQueue());
+	auto cubeMeshData = common::LoadMeshes("assets/cube.glb")[0];
+	std::shared_ptr<common::Mesh> cubeMesh = std::make_shared<common::Mesh>(
+		cubeMeshData,
+		ctx.GetDevice(), 
+		ctx.GetCommandQueue());
 	gMeshTable.insert({ 1, cubeMesh });
 
-	auto sphereMeshData = common::LoadMeshes("assets/sphere.glb");
+	auto sphereMeshData = common::LoadMeshes("assets/sphere.glb")[0];
 	std::shared_ptr<common::Mesh> sphereMesh = std::make_shared<common::Mesh>(sphereMeshData,
 		ctx.GetDevice(), ctx.GetCommandQueue());
 	gMeshTable.insert({ 2, sphereMesh });

@@ -6,12 +6,12 @@ using namespace Microsoft::WRL;
 /// <summary>
 /// Represents the data as the shader expects
 /// </summary>
-struct ModelMatrix {
+struct ModelMatrixStruct {
     DirectX::XMFLOAT4X4 matrix;
 };
 
 constexpr UINT numMatrices = 1024; 
-constexpr UINT matrixSize = sizeof(ModelMatrix);
+constexpr UINT matrixSize = sizeof(ModelMatrixStruct);
 constexpr UINT bufferSize = (numMatrices * matrixSize + 255) & ~255; 
 
 transforms::ModelMatrix::ModelMatrix(Context& ctx)
@@ -76,9 +76,32 @@ transforms::ModelMatrix::ModelMatrix(Context& ctx)
     }
 }
 
-void transforms::ModelMatrix::UploadData(std::vector<Transform*> transforms,
+void transforms::ModelMatrix::UploadData(std::vector<Transform*>& transforms,
     int frameId,  Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
 {
-    //upload the data to the gpu. mind the current frame
-    std::vector< ModelMatrix
+    //fill the staging buffer
+    void* baseAddress = mappedData[frameId];
+    ModelMatrixStruct* structs = reinterpret_cast<ModelMatrixStruct*>(baseAddress);
+    ZeroMemory(structs, bufferSize);
+    for (int i = 0; i < transforms.size(); i++)
+    {
+        using namespace DirectX;
+        auto t = transforms[i];
+        XMMATRIX scaleMatrix = XMMatrixScaling(t->scale.x, t->scale.y, t->scale.z);
+        XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(t->rotation);
+        XMMATRIX translationMatrix = XMMatrixTranslation(t->position.x, t->position.y, t->position.z);
+        XMMATRIX __modelMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+        XMStoreFloat4x4(&structs[t->id].matrix, __modelMatrix);
+    }
+    //copy the staging buffer
+    D3D12_SUBRESOURCE_DATA subresourceData = {};
+    subresourceData.pData = baseAddress;
+    subresourceData.RowPitch = sizeof(DirectX::XMFLOAT4X4) * numMatrices;
+    subresourceData.SlicePitch = subresourceData.RowPitch;
+    UpdateSubresources(commandList.Get(), 
+        structuredBuffer[frameId].Get(),
+        uploadBuffer[frameId].Get(), 
+        0, 0, 1, &subresourceData);
+
+
 }
