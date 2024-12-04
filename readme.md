@@ -21,7 +21,7 @@ Remember that if you want a build release you have to build assimp and directxhe
 Also, remember to copy the assimp dlls from it's install folder in program files to the same folder that the .exes are.
 
 Troubleshooting:
-- Fail to load shaders: the .cso, by default go to $(SolutionDir)$(Platform)\$(Configuration). Make sure that the project's working directory is $(SolutionDir)$(Platform)\$(Configuration).
+- Fail to load shaders: the .cso, by default go to ```$(SolutionDir)$(Platform)\$(Configuration)```. Make sure that the project's working directory is ```$(SolutionDir)$(Platform)\$(Configuration)```.
 - Fail to build release: compile assimp and directxmath as release.
 - Crashes due to lack of assimp dll: copy the dll from assimp install dir (the one in program files) to the same dir that the executable is.
 
@@ -29,7 +29,14 @@ Troubleshooting:
 - Common: code that's shared between the projects
 - HelloWorld: first triangle. how to setup a window, create the directx infrastructure and put something on the screen
 - ColoredTriangle: triangle with color. How to pass data to the shaders, in this example, position and color. 
+- IndexBuffersAndDepth: how to create the depth buffer and how to use an index buffer with vertices.
+- TransformsAndManyObjects: pass model matrix to the shader using a Shader Resource View that holds all the matrices and an index passed as a root constant so that the shader can use the right matrix.
 
+## Creating a new project 
+1) Choose Console App C++ template and create the project as a subfolder of the SolutionDir.
+    - This matters because it'll consume headers and libs from the Common project
+2) With configuration = All Configurations do:
+    - General->C++ Language Standard = ISO C++17 Standard (/std:c++17)
 ## Submodules
 - DirectX-Headers (https://github.com/microsoft/DirectX-Headers.git)
 - assimp (https://github.com/assimp/assimp.git)
