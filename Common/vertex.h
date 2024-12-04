@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-namespace dx3d //TODO refactor: change namespace to commons
+namespace common //TODO refactor: change namespace to commons
 {
 	/// <summary>
 	/// Standard vertex with pos, normal and uv

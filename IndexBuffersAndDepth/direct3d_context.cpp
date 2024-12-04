@@ -4,7 +4,7 @@
 #include "view_projection.h"
 #include "../Common/concatenate.h"
 using Microsoft::WRL::ComPtr;
-namespace dx3d
+namespace common
 {
 
     void Context::CreateVertexBufferFromData(std::vector<Vertex>& _vertices, Microsoft::WRL::ComPtr<ID3D12Resource>& _vertexBuffer, D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView, const std::wstring& name)
@@ -43,7 +43,7 @@ namespace dx3d
         vertexData.SlicePitch = vBufferSize; // also the size of our triangle vertex data
         //move _vertexBuffer and vBufferUploadHeap from D3D12_RESOURCE_STATE_COMMON to their states, then copy the content
         //to _vertexBuffer
-        myd3d::RunCommands(
+        common::RunCommands(
             device.Get(),
             commandQueue.Get(),
             [&_vertexBuffer, &vBufferUploadHeap, &vertexData](ComPtr<ID3D12GraphicsCommandList> lst) {
@@ -181,40 +181,40 @@ namespace dx3d
     {
         HRESULT hr;
         //the factory is used to create DXGI objects.
-        ComPtr<IDXGIFactory4> dxgiFactory = myd3d::CreateDXGIFactory();
+        ComPtr<IDXGIFactory4> dxgiFactory = common::CreateDXGIFactory();
         //the IDXGIAdapter1 is equivalent to VkPhysicalDevice
-        ComPtr<IDXGIAdapter1> adapter = myd3d::FindAdapter(dxgiFactory); // adapters are the graphics card (this includes the embedded graphics on the motherboard)
+        ComPtr<IDXGIAdapter1> adapter = common::FindAdapter(dxgiFactory); // adapters are the graphics card (this includes the embedded graphics on the motherboard)
 #if defined(_DEBUG)
         //Debug Layer has to be created before the device or the device won't have debug enabled
-        debugLayer = myd3d::CreateDebugLayer();
+        debugLayer = common::CreateDebugLayer();
         assert(debugLayer != nullptr);
 #endif
         //ID3D12Device is equivalent do VkDevice
-        device = myd3d::CreateDevice(adapter);
+        device = common::CreateDevice(adapter);
 #if defined(_DEBUG)
         device->QueryInterface(IID_PPV_ARGS(&debugDevice));
         assert(debugDevice != nullptr);
 #endif
         //We'll need a command queue to run the commands, it's equivalent to vkCommandQueue
-        commandQueue = myd3d::CreateDirectCommandQueue(device, L"MainCommandQueue");
+        commandQueue = common::CreateDirectCommandQueue(device, L"MainCommandQueue");
         //The swap chain, created with the size of the screenm using dxgi to fabricate the objects
-        swapChain = myd3d::CreateSwapChain(hwnd, w, h, FRAMEBUFFER_COUNT, true,
+        swapChain = common::CreateSwapChain(hwnd, w, h, FRAMEBUFFER_COUNT, true,
             commandQueue,
             dxgiFactory);
         frameIndex = swapChain->GetCurrentBackBufferIndex();
         //create a heap for render target view descriptors and get the size of it's descriptors. We have to get the
         //size because it can vary from device to device.
-        rtvData = std::make_shared<myd3d::RenderTargetViewData>(
-            myd3d::CreateRenderTargetViewDescriptorHeap(FRAMEBUFFER_COUNT, device),
+        rtvData = std::make_shared<common::RenderTargetViewData>(
+            common::CreateRenderTargetViewDescriptorHeap(FRAMEBUFFER_COUNT, device),
             device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV),
             FRAMEBUFFER_COUNT
         );
         // now we create the render targets for the swap chain, linking the swap chain buffers to render target view descriptors
-        swapChainRenderTargets = myd3d::CreateRenderTargets(rtvData,
+        swapChainRenderTargets = common::CreateRenderTargets(rtvData,
             swapChain, device);
         // We need a command allocator for each frame because if we use a single allocator each frame will mess with the other frames
         // allocations due to the fact that we need to reset the allocator before using it.
-        commandAllocator = myd3d::CreateCommandAllocators(FRAMEBUFFER_COUNT, device);
+        commandAllocator = common::CreateCommandAllocators(FRAMEBUFFER_COUNT, device);
         // We are using single thread. If we were using multiple threads we'd need to have a list for each thread.
         hr = device->CreateCommandList(0,//default gpu 
             D3D12_COMMAND_LIST_TYPE_DIRECT, //type of commands - direct means that the commands can be executed by the gpu

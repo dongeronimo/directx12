@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 //using Microsoft::WRL::ComPtr;
-namespace dx3d
+namespace common
 {
 	/// <summary>
 	/// Stores root signatures in a key-value table.

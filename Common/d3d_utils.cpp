@@ -4,14 +4,14 @@
 using Microsoft::WRL::ComPtr;
 
 
-Microsoft::WRL::ComPtr<IDXGIFactory4> myd3d::CreateDXGIFactory()
+Microsoft::WRL::ComPtr<IDXGIFactory4> common::CreateDXGIFactory()
 {
     ComPtr<IDXGIFactory4> dxgiFactory = nullptr;
     CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
     return dxgiFactory;
 }
 
-Microsoft::WRL::ComPtr<IDXGIAdapter1> myd3d::FindAdapter(Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
+Microsoft::WRL::ComPtr<IDXGIAdapter1> common::FindAdapter(Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
 {
     assert(dxgiFactory != nullptr);
     HRESULT hr;
@@ -41,7 +41,7 @@ Microsoft::WRL::ComPtr<IDXGIAdapter1> myd3d::FindAdapter(Microsoft::WRL::ComPtr<
     return adapter;
 }
 
-Microsoft::WRL::ComPtr<ID3D12Device> myd3d::CreateDevice(Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter)
+Microsoft::WRL::ComPtr<ID3D12Device> common::CreateDevice(Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter)
 {
     ComPtr<ID3D12Device> device;
     HRESULT hr;
@@ -54,7 +54,7 @@ Microsoft::WRL::ComPtr<ID3D12Device> myd3d::CreateDevice(Microsoft::WRL::ComPtr<
     return device;
 }
 
-Microsoft::WRL::ComPtr<ID3D12CommandQueue> myd3d::CreateDirectCommandQueue(
+Microsoft::WRL::ComPtr<ID3D12CommandQueue> common::CreateDirectCommandQueue(
     Microsoft::WRL::ComPtr<ID3D12Device> device, const std::wstring& name)
 {
     assert(device != nullptr);
@@ -76,7 +76,7 @@ DXGI_MODE_DESC DescribeSwapChainBackBuffer(int w, int h)
     backBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // format of the buffer (rgba 32 bits, 8 bits for each chanel)
     return backBufferDesc;
 }
-Microsoft::WRL::ComPtr<IDXGISwapChain3> myd3d::CreateSwapChain(HWND hwnd, 
+Microsoft::WRL::ComPtr<IDXGISwapChain3> common::CreateSwapChain(HWND hwnd, 
     int w, int h, int framebufferCount, bool windowed, 
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
@@ -102,7 +102,7 @@ Microsoft::WRL::ComPtr<IDXGISwapChain3> myd3d::CreateSwapChain(HWND hwnd,
     return sc;
 }
 
-Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myd3d::CreateRenderTargetViewDescriptorHeap(int amount, Microsoft::WRL::ComPtr<ID3D12Device> device)
+Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> common::CreateRenderTargetViewDescriptorHeap(int amount, Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
     rtvHeapDesc.NumDescriptors = amount; // number of descriptors for this heap.
@@ -116,8 +116,8 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myd3d::CreateRenderTargetViewDescri
     return heap;
 }
 
-std::vector<ComPtr<ID3D12Resource>> myd3d::CreateRenderTargets(
-    std::shared_ptr<myd3d::RenderTargetViewData> rtvData,
+std::vector<ComPtr<ID3D12Resource>> common::CreateRenderTargets(
+    std::shared_ptr<common::RenderTargetViewData> rtvData,
     Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain,
     Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
@@ -141,7 +141,7 @@ std::vector<ComPtr<ID3D12Resource>> myd3d::CreateRenderTargets(
     return renderTargets;
 }
 #if defined(_DEBUG)
-Microsoft::WRL::ComPtr<ID3D12Debug> myd3d::CreateDebugLayer()
+Microsoft::WRL::ComPtr<ID3D12Debug> common::CreateDebugLayer()
 {
 
     ComPtr<ID3D12Debug> debugInterface;
@@ -153,7 +153,7 @@ Microsoft::WRL::ComPtr<ID3D12Debug> myd3d::CreateDebugLayer()
 }
 #endif
 
-void myd3d::RunCommands(
+void common::RunCommands(
     ID3D12Device* device,
     ID3D12CommandQueue* commandQueue,
     std::function<void(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>)> callback)
@@ -193,7 +193,7 @@ void myd3d::RunCommands(
     WaitForSingleObject(fenceEvent, INFINITE);
 }
 
-std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myd3d::CreateCommandAllocators(int amount,
+std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> common::CreateCommandAllocators(int amount,
     Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
     std::vector<ComPtr<ID3D12CommandAllocator>> allocators(amount);

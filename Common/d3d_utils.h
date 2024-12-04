@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-namespace myd3d
+namespace common
 {
 	class RenderTargetViewData
 	{
@@ -67,7 +67,7 @@ namespace myd3d
 	/// Creates the render targets for the swap chain in the render target views alredy created.
 	/// </summary>
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> CreateRenderTargets(
-		std::shared_ptr<myd3d::RenderTargetViewData> rtvData,
+		std::shared_ptr<common::RenderTargetViewData> rtvData,
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain,
 		Microsoft::WRL::ComPtr<ID3D12Device> device
 	);

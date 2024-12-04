@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 
-namespace common
+namespace transforms
 {
 	class Context;
 	class ViewProjection

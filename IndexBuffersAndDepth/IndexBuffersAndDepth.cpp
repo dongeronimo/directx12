@@ -13,19 +13,19 @@ constexpr int H = 600;
 int main()
 {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
-	myd3d::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle");
+	common::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle");
 	window.Show();
-	std::unique_ptr<dx3d::Context> ctx = std::make_unique<dx3d::Context>(W, H, window.Hwnd());
-	std::unique_ptr<dx3d::RootSignatureService> rootSignatureService = std::make_unique<dx3d::RootSignatureService>();
+	std::unique_ptr<common::Context> ctx = std::make_unique<common::Context>(W, H, window.Hwnd());
+	std::unique_ptr<common::RootSignatureService> rootSignatureService = std::make_unique<common::RootSignatureService>();
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 
-	dx3d::ViewProjection viewProjection(*ctx);
+	common::ViewProjection viewProjection(*ctx);
 	viewProjection.SetPerspective(45.0f, (float)W / (float)H, 0.01f, 100.f);
 	viewProjection.LookAt({ 3.0f, 5.0f, 7.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 	
 
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
-	std::shared_ptr<dx3d::Pipeline> myPipeline = std::make_shared<dx3d::Pipeline>(
+	std::shared_ptr<common::Pipeline> myPipeline = std::make_shared<common::Pipeline>(
 		L"index_buffers_and_depth_vertex_shader.cso",
 		L"index_buffers_and_depth_pixel_shader.cso",
 		rootSignatureService->Get(myRootSignatureName),
@@ -33,8 +33,8 @@ int main()
 		L"HelloWorldPipeline"
 	);
 	//load data from the file
-	auto sphereMeshData = myd3d::LoadMeshes("assets/monkey.glb")[0];
-	std::shared_ptr<myd3d::Mesh> mesh = std::make_shared<myd3d::Mesh>(sphereMeshData,
+	auto sphereMeshData = common::LoadMeshes("assets/monkey.glb")[0];
+	std::shared_ptr<common::Mesh> mesh = std::make_shared<common::Mesh>(sphereMeshData,
 		ctx->GetDevice(), ctx->GetCommandQueue());
 	// Fill out the Viewport
 	myPipeline->viewport.TopLeftX = 0;

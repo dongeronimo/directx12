@@ -16,13 +16,13 @@ D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 int main()
 {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
-	myd3d::Window window(hInstance, L"hello_world_t", L"Hello World!");
+	common::Window window(hInstance, L"hello_world_t", L"Hello World!");
 	window.Show();
-	std::unique_ptr<dx3d::Context> ctx = std::make_unique<dx3d::Context>(W, H, window.Hwnd());
-	std::unique_ptr<dx3d::RootSignatureService> rootSignatureService = std::make_unique<dx3d::RootSignatureService>();
+	std::unique_ptr<common::Context> ctx = std::make_unique<common::Context>(W, H, window.Hwnd());
+	std::unique_ptr<common::RootSignatureService> rootSignatureService = std::make_unique<common::RootSignatureService>();
 	const std::wstring myRootSignatureName = L"MyRootSignature";
 	rootSignatureService->Add(myRootSignatureName, ctx->CreateRootSignature(myRootSignatureName));
-	std::shared_ptr<dx3d::Pipeline> myPipeline = std::make_shared<dx3d::Pipeline>(
+	std::shared_ptr<common::Pipeline> myPipeline = std::make_shared<common::Pipeline>(
 		L"vertex_shader.cso",
 		L"pixel_shader.cso",
 		rootSignatureService->Get(myRootSignatureName),

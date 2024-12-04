@@ -20,6 +20,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IndexBuffersAndDepth", "Ind
 		{19077B70-A842-4205-993B-BF3FEDB88D19} = {19077B70-A842-4205-993B-BF3FEDB88D19}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TransformsAndManyObjects", "TransformsAndManyObjects\TransformsAndManyObjects.vcxproj", "{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19077B70-A842-4205-993B-BF3FEDB88D19} = {19077B70-A842-4205-993B-BF3FEDB88D19}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -60,6 +65,14 @@ Global
 		{AB86BAB9-78C9-4C41-9885-1A123F960125}.Release|x64.Build.0 = Release|x64
 		{AB86BAB9-78C9-4C41-9885-1A123F960125}.Release|x86.ActiveCfg = Release|Win32
 		{AB86BAB9-78C9-4C41-9885-1A123F960125}.Release|x86.Build.0 = Release|Win32
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Debug|x64.ActiveCfg = Debug|x64
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Debug|x64.Build.0 = Debug|x64
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Debug|x86.ActiveCfg = Debug|Win32
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Debug|x86.Build.0 = Debug|Win32
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Release|x64.ActiveCfg = Release|x64
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Release|x64.Build.0 = Release|x64
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Release|x86.ActiveCfg = Release|Win32
+		{2C615868-C3D4-435A-AF1D-65EE6E2FB63D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,32 +1,46 @@
 #include "pch.h"
 #include "window.h"
+
+common::Window* _window = nullptr;
+
 LRESULT CALLBACK __WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	assert(_window);
 	switch (uMsg)
-	{
-
-	case WM_KEYDOWN:
-		if (wParam == VK_ESCAPE) {
-			if (MessageBox(0, L"Are you sure you want to exit?",
-				L"Really?", MB_YESNO | MB_ICONQUESTION) == IDYES)
-				DestroyWindow(hwnd);
-		}
-		return 0;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+	{	
+		case WM_KEYDOWN:
+			if (wParam == VK_ESCAPE) {
+				if (MessageBox(0, L"Are you sure you want to exit?",
+					L"Really?", MB_YESNO | MB_ICONQUESTION) == IDYES)
+					DestroyWindow(hwnd);
+			}
+			return 0;
+		case WM_SIZE:
+			RECT rect; GetWindowRect(hwnd, &rect);
+			if (_window->mOnResize.has_value())
+			{
+				int w = rect.right - rect.left;
+				int h = rect.bottom - rect.top;
+				auto fn = _window->mOnResize;
+				(*fn)(w, h);
+			}
+				
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
 	}
 	return DefWindowProc(hwnd,
 		uMsg,
 		wParam,
 		lParam);
 }
-namespace myd3d
+namespace common
 {
 	Window::Window(HINSTANCE hInstance, 
 		const std::wstring& className,
 		const std::wstring& title)
 	{
+		_window = this;
 		WNDCLASSEX wc;
 		wc.cbSize = sizeof(WNDCLASSEX);                // The size, in bytes, of this structure
 		wc.style = 0;                                 // The class style(s)
@@ -46,7 +60,7 @@ namespace myd3d
 			0,                      // Optional window styles.
 			className.c_str(),          // Window class
 			title.c_str(),            // Window text
-			WS_OVERLAPPEDWINDOW,    // Window style
+			WS_POPUPWINDOW,    // Window style
 			CW_USEDEFAULT,          // Position X
 			CW_USEDEFAULT,          // Position Y
 			800,                    // Width

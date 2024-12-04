@@ -2,10 +2,11 @@
 #include "pch.h"
 #include "../Common/d3d_utils.h"
 //using Microsoft::WRL::ComPtr;
-namespace common
+namespace transforms
 {
     class Pipeline;
     class ViewProjection;
+    class ModelMatrix;
     class Context
     {
     private:
@@ -39,12 +40,13 @@ namespace common
         // This is a heap for our depth/stencil buffer descriptor
         std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>> dsDescriptorHeap; 
     public:
+        int GetFrameIndex()const { return frameIndex; }
         Context(int w, int h, HWND hwnd);
         Microsoft::WRL::ComPtr<ID3D12RootSignature> CreateRootSignature(const std::wstring& name);
         Microsoft::WRL::ComPtr<ID3D12Device> GetDevice()const {
             return device;
         }
-        void CreateVertexBufferFromData(std::vector<Vertex>& _vertices,
+        void CreateVertexBufferFromData(std::vector<common::Vertex>& _vertices,
             Microsoft::WRL::ComPtr<ID3D12Resource>& _vertexBuffer,
             D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView,
             const std::wstring& name);
@@ -54,7 +56,8 @@ namespace common
         void SetCurrentOutputMergerTarget();
         void ClearRenderTargetView(std::array<float, 4> rgba);
         void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
-            ViewProjection& viewProjectionData);
+            ViewProjection& viewProjectionData,
+            ModelMatrix& modelMatricesData);
         void BindPipeline(std::shared_ptr<Pipeline> pipe);
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList()const {
             return commandList;
@@ -68,5 +71,7 @@ namespace common
             D3D12_CONSTANT_BUFFER_VIEW_DESC& cbvDesc,
             Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
             size_t constantBufferSize);
+        void Resize(int w, int h);
+        void WaitAllFrames();
     };
 }

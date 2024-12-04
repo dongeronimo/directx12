@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "input_layout_service.h"
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::OnlyVertexes()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::OnlyVertexes()
 {
     std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout(
         {
@@ -18,7 +18,7 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::OnlyVertexes()
     return inputLayout;
 }
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsAndColors()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::PositionsAndColors()
 {
 
     std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout =
@@ -29,7 +29,7 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsAndCo
     return inputLayout;
 }
 
-std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsNormalsAndUVs()
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::PositionsNormalsAndUVs()
 {
     constexpr size_t vertexSize = sizeof(float) * 3;
     constexpr size_t vertexOffset = 0;
@@ -42,6 +42,24 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> dx3d::input_layout_service::PositionsNorma
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vertexOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, normalsOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, uvOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+    };
+    return inputLayout;
+}
+
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::DefaultVertexDataAndInstanceId()
+{
+    constexpr size_t vertexSize = sizeof(float) * 3;
+    constexpr size_t vertexOffset = 0;
+    constexpr size_t normalsOffset = vertexSize;
+    constexpr size_t normalsSize = sizeof(float) * 3;
+    constexpr size_t uvSize = sizeof(float) * 2;
+    constexpr size_t uvOffset = vertexSize + normalsSize;
+    std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vertexOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, normalsOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, uvOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "MATRIX_INDEX", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1}
     };
     return inputLayout;
 }

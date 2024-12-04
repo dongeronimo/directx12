@@ -1,14 +1,13 @@
 #include "direct3d_context.h"
-#include "../../Common/d3d_utils.h"
-#include "Pipeline.h"
+#include "../Common/d3d_utils.h"
+#include "pipeline.h"
+#include "view_projection.h"
+#include "model_matrix.h"
+#include "../Common/concatenate.h"
 using Microsoft::WRL::ComPtr;
-namespace common
+using namespace common;
+namespace transforms
 {
-    std::vector<Vertex> vertices = {
-    { { 0.0f, 0.5f, 0.5f } },
-    { { 0.5f, -0.5f, 0.5f } },
-    { { -0.5f, -0.5f, 0.5f } },
-    };
 
     void Context::CreateVertexBufferFromData(std::vector<Vertex>& _vertices, Microsoft::WRL::ComPtr<ID3D12Resource>& _vertexBuffer, D3D12_VERTEX_BUFFER_VIEW& _vertexBufferView, const std::wstring& name)
     {
@@ -119,14 +118,36 @@ namespace common
         // set the render target for the output merger stage (the output of the pipeline)
         commandList->OMSetRenderTargets(1, &_rtvHandle, FALSE, nullptr);
         this->rtvHandle = _rtvHandle;
+        
+        // get a handle to the depth/stencil buffer
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(
+            dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart());
+        // set the render target for the output merger stage (the output of the pipeline)
+        commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
     void Context::ClearRenderTargetView(std::array<float, 4> rgba)
     {
+        commandList->ClearDepthStencilView(
+            dsDescriptorHeap[frameIndex]->GetCPUDescriptorHandleForHeapStart(),
+            D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         commandList->ClearRenderTargetView(rtvHandle, rgba.data(), 0, nullptr);
     }
-    void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs)
+    void Context::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+        ViewProjection& viewProjectionData,
+        ModelMatrix& modelMatricesData)
     {
+        //bind the root signature
         commandList->SetGraphicsRootSignature(rs.Get());
+        //bind the descriptor table (SRV for the structured buffer that holds the model matrices)
+        ID3D12DescriptorHeap* h = modelMatricesData.DescriptorHeap(frameIndex).Get();
+        commandList->SetDescriptorHeaps(1, &h);
+        //Model Matrices are param #0
+        commandList->SetGraphicsRootDescriptorTable(0, 
+            modelMatricesData.DescriptorHeap(frameIndex)->GetGPUDescriptorHandleForHeapStart());
+        // the root constants are in param #1
+        // the constant buffer for view/proj data is in #2
+        commandList->SetGraphicsRootConstantBufferView(2,
+            viewProjectionData.GetConstantBuffer()->GetGPUVirtualAddress());
     }
     void Context::BindPipeline(std::shared_ptr<Pipeline> pipe)
     {
@@ -145,6 +166,111 @@ namespace common
         assert(hr == S_OK);
         hr = swapChain->Present(0, 0);
         assert(hr == S_OK);
+    }
+
+    void Context::CreateConstantBufferView(
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, 
+        D3D12_CONSTANT_BUFFER_VIEW_DESC& cbvDesc,
+        Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer,
+        size_t constantBufferSize)
+    {
+        cbvDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress();
+        cbvDesc.SizeInBytes = constantBufferSize;
+
+        // Create the descriptor heap.
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = 1;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
+
+        // Create the CBV in the heap.
+        device->CreateConstantBufferView(&cbvDesc, descriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    }
+
+    void Context::Resize(int w, int h)
+    {
+        WaitAllFrames();
+
+        //recreate render targets
+        for (auto& x : swapChainRenderTargets) {
+            x.ReleaseAndGetAddressOf();
+        }
+        swapChainRenderTargets.clear();
+        swapChain->ResizeBuffers(FRAMEBUFFER_COUNT, w, h, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        swapChainRenderTargets = common::CreateRenderTargets(rtvData, swapChain, device);
+        //recreate depth buffer
+        for (auto& x : dsDescriptorHeap) {
+            x.ReleaseAndGetAddressOf();
+        }
+        dsDescriptorHeap.clear();
+        dsDescriptorHeap.resize(FRAMEBUFFER_COUNT);
+        for (auto& x : depthStencilBuffer) {
+            x.ReleaseAndGetAddressOf();
+        }
+        depthStencilBuffer.clear();
+        depthStencilBuffer.resize(FRAMEBUFFER_COUNT);
+        D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            // create a depth stencil descriptor heap so we can get a pointer to the depth stencil buffer
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+            dsvHeapDesc.NumDescriptors = 1;
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            HRESULT hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap[i]));
+            assert(hr == S_OK);
+            std::wstring name = Concatenate(L"depthStencilDescriptorHeap", i);
+            dsDescriptorHeap[i]->SetName(name.c_str());
+        }
+        CD3DX12_HEAP_PROPERTIES depthStencilHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, //format
+            w, h, // w/h 
+            1, //array size 
+            1, //mip levels 
+            1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            device->CreateCommittedResource(
+                &depthStencilHeapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                &depthStencilResourceDesc,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                &depthOptimizedClearValue,
+                IID_PPV_ARGS(&depthStencilBuffer[i])
+            );
+            std::wstring name = Concatenate(L"depthBuffer", i);
+            depthStencilBuffer[i]->SetName(name.c_str());
+            device->CreateDepthStencilView(depthStencilBuffer[i].Get(),
+                &depthStencilDesc,
+                dsDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart());
+
+        }
+    }
+
+    void Context::WaitAllFrames()
+    {
+        std::vector<HANDLE> fenceEvents(FRAMEBUFFER_COUNT);
+        for (UINT i = 0; i < FRAMEBUFFER_COUNT; ++i) {
+            const UINT64 currentFenceValue = fenceValue[i];
+            commandQueue->Signal(fence[i].Get(), currentFenceValue);
+            fenceValue[i]++;
+
+            if (fence[i]->GetCompletedValue() < currentFenceValue) {
+                fence[i]->SetEventOnCompletion(currentFenceValue, fenceEvents[i]);
+                WaitForSingleObject(fenceEvents[i], INFINITE);
+            }
+        }
     }
 
     Context::Context(int w, int h, HWND hwnd)
@@ -203,14 +329,77 @@ namespace common
             assert(hr == S_OK);
             fenceValue[i] = 0; // set the initial fence value to 0
         }
+        //create the depth-stencil buffer, one for each frame
+        depthStencilBuffer.resize(FRAMEBUFFER_COUNT);
+        dsDescriptorHeap.resize(FRAMEBUFFER_COUNT);
+        D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            // create a depth stencil descriptor heap so we can get a pointer to the depth stencil buffer
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+            dsvHeapDesc.NumDescriptors = 1;
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap[i]));
+            assert(hr == S_OK);
+            std::wstring name = Concatenate(L"depthStencilDescriptorHeap", i);
+            dsDescriptorHeap[i]->SetName(name.c_str());
+        }
+        CD3DX12_HEAP_PROPERTIES depthStencilHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+        CD3DX12_RESOURCE_DESC depthStencilResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, //format
+            w, h, // w/h 
+            1, //array size 
+            1, //mip levels 
+            1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        for (int i = 0; i < FRAMEBUFFER_COUNT; i++)
+        {
+            device->CreateCommittedResource(
+                &depthStencilHeapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                &depthStencilResourceDesc,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                &depthOptimizedClearValue,
+                IID_PPV_ARGS(&depthStencilBuffer[i])
+            );
+            std::wstring name = Concatenate(L"depthBuffer", i);
+            depthStencilBuffer[i]->SetName(name.c_str());
+            device->CreateDepthStencilView(depthStencilBuffer[i].Get(),
+                &depthStencilDesc,
+                dsDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart());
+
+        }
+
     }
 
     ComPtr<ID3D12RootSignature> Context::CreateRootSignature(const std::wstring& name)
     {
+        //the table of root signature parameters
+        std::array<CD3DX12_ROOT_PARAMETER, 3> rootParams;
+        //1) ModelMatrices 
+        CD3DX12_DESCRIPTOR_RANGE srvRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, //it's a shader resource view 
+            1, 
+            0); //register t0
+        rootParams[0].InitAsDescriptorTable(1, &srvRange);
+        //2) RootConstants
+        rootParams[1].InitAsConstants(1, //inits one dword (that'll carry the instanceId)
+            0);//register b0
+        //ConstantBuffer (view/projection data)
+        rootParams[2].InitAsConstantBufferView(1); //at register b1
+
         //create root signature
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0,//number of parameters
-            nullptr,//parameter list
+        rootSignatureDesc.Init(rootParams.size(),//number of parameters
+            rootParams.data(),//parameter list
             0,//number of static samplers
             nullptr,//static samplers list
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT //flags

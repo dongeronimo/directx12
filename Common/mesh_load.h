@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-namespace myd3d
+namespace common
 {
 	struct MeshData
 	{
@@ -11,7 +11,7 @@ namespace myd3d
 		std::vector<DirectX::XMFLOAT2> uv;
 	};
 
-	std::vector<myd3d::MeshData> LoadMeshes(
+	std::vector<common::MeshData> LoadMeshes(
 		const std::string& filename
 	);
 }
