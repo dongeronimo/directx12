@@ -96,7 +96,7 @@ int main()
 		myPipeline->scissorRect.right = newW;
 		myPipeline->scissorRect.bottom = newH;
 	};
-	//set onIdle handle to deal with rendering
+	//set onIdle handle to deal with rewndering
 	window.mOnIdle = [&ctx, &rootSignatureService, myRootSignatureName,
 		&myPipeline, &viewProjection]() {
 		assert(mModelMatrix != nullptr);

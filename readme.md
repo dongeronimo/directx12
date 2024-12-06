@@ -31,12 +31,24 @@ Troubleshooting:
 - ColoredTriangle: triangle with color. How to pass data to the shaders, in this example, position and color. 
 - IndexBuffersAndDepth: how to create the depth buffer and how to use an index buffer with vertices.
 - TransformsAndManyObjects: pass model matrix to the shader using a Shader Resource View that holds all the matrices and an index passed as a root constant so that the shader can use the right matrix.
-
+- AsteroidsDemo: Textures, Lights, Shadows. Many render passes. Instanced rendering. 
+  
 ## Creating a new project 
 1) Choose Console App C++ template and create the project as a subfolder of the SolutionDir.
     - This matters because it'll consume headers and libs from the Common project
 2) With configuration = All Configurations do:
-    - General->C++ Language Standard = ISO C++17 Standard (/std:c++17)
+    - General->C++ Language Standard = ```ISO C++17 Standard (/std:c++17)```
+    - Debugging->Working Directory = ```$(SolutionDir)$(Platform)\$(Configuration)```
+    - VC++ Directories->Include Directories = ```C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(WindowsSDK_IncludePath)```
+    - VC++ Directories->Library Directories = ```C:\Program Files (x86)\Assimp\lib;$(LibraryPath)```
+3) With configuration = Debug do:
+    - Linker->Input->Additional Dependencies = ```d3d12.lib;dxgi.lib;assimp-vc143-mtd.lib;zlibstaticd.lib;../x64/Debug/Common.lib;%(AdditionalDependencies)```
+4) With configuration = Release do:
+    - Linker->Input->Additional Dependencies = ```d3d12.lib;dxgi.lib;assimp-vc143-mt.lib;zlibstatic.lib;../x64/Release/Common.lib;%(AdditionalDependencies)```
+5) Right Click on the new project->Build Dependencies->Project Dependencies: select Common as a build dependency.  
+6) Build the project for both debug and release
+7) Copy assimp dlls to ```$(SolutionDir)$(Platform)\$(Configuration)``` for Configuration = Debug and Configuration = Release if they are not alredy present. The dlls are at ```C:\Program Files (x86)\Assimp\bin``` if you built assimp with default install options.
+
 ## Submodules
 - DirectX-Headers (https://github.com/microsoft/DirectX-Headers.git)
 - assimp (https://github.com/assimp/assimp.git)

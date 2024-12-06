@@ -30,5 +30,40 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+namespace common
+{
+	class Mesh;
+}
+namespace common::images
+{
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateImage(int textureWidth, 
+		int textureHeight, 
+		DXGI_FORMAT format,
+		UINT sampleCount, 
+		UINT sampleQuality, 
+		Microsoft::WRL::ComPtr<ID3D12Device> device,
+		std::array<float, 4> cv = {0,0,0,0});
 
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthImage(int textureWidth,
+		int textureHeight,
+		UINT sampleCount,
+		UINT sampleQuality,
+		Microsoft::WRL::ComPtr<ID3D12Device> device);
+
+}
+
+namespace common::io
+{
+	/// <summary>
+	/// remember that a file can have many meshes, that's why is a vector
+	/// </summary>
+	/// <param name="device"></param>
+	/// <param name="queue"></param>
+	/// <param name="filepathInAssetFolder"></param>
+	/// <returns></returns>
+	std::vector<std::shared_ptr<common::Mesh>> LoadMesh(
+		Microsoft::WRL::ComPtr<ID3D12Device> device,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue,
+		std::string filepathInAssetFolder);
+}
 #endif //PCH_H

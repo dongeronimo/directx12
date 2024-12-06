@@ -96,7 +96,6 @@ namespace common
 				DispatchMessage(&msg);
 			}
 			else {
-				//TODO update game logic
 				if (mOnIdle) (*mOnIdle)(); //call onIdle if i have an event handler
 
 			}

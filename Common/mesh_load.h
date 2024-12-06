@@ -14,5 +14,9 @@ namespace common
 	std::vector<common::MeshData> LoadMeshes(
 		const std::string& filename
 	);
+
+	std::vector<common::MeshData> LoadMeshes(
+		const std::wstring& filename
+	);
 }
 

@@ -51,6 +51,7 @@ std::vector<common::MeshData> common::LoadMeshes(const std::string& filename)
     return result;
 }
 
+
 const aiScene* LoadScene(Assimp::Importer& importer, const std::string& path) {
     const aiScene* scene = importer.ReadFile(path.c_str(),
         aiProcess_Triangulate |

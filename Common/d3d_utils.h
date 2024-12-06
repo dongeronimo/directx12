@@ -52,7 +52,16 @@ namespace common
 		HWND hwnd,
 		int w, int h, int framebufferCount, bool windowed,
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory);
+		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory,
+		UINT sampleCount = 1, UINT quality = 0);
+
+	Microsoft::WRL::ComPtr<IDXGISwapChain3> CreateSwapChain(
+		HWND hwnd,
+		int w, int h, int framebufferCount, bool windowed,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
+		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory,
+		DXGI_FORMAT backbufferFormat,
+		int sampleCount, int sampleQuality);
 	/// <summary>
 	/// Create a heap for renderTargetViews.
 	/// </summary>

@@ -10,7 +10,8 @@ using Microsoft::WRL::ComPtr;
 common::Mesh::Mesh(MeshData& data, 
     Microsoft::WRL::ComPtr<ID3D12Device> device,
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue):
-    mNumberOfIndices(data.indices.size())
+    mNumberOfIndices(data.indices.size()), 
+    name(multi2wide(data.name))
 {
     std::vector<common::Vertex> vertexes(data.vertices.size());
     for (auto i = 0; i < data.vertices.size(); i++)

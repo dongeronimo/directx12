@@ -68,22 +68,23 @@ Microsoft::WRL::ComPtr<ID3D12CommandQueue> common::CreateDirectCommandQueue(
     queue->SetName(name.c_str());
     return queue;
 }
-DXGI_MODE_DESC DescribeSwapChainBackBuffer(int w, int h)
+DXGI_MODE_DESC DescribeSwapChainBackBuffer(int w, int h, DXGI_FORMAT fmt = DXGI_FORMAT_R8G8B8A8_UNORM)
 {
     DXGI_MODE_DESC backBufferDesc = {};
     backBufferDesc.Width = w; // buffer width
     backBufferDesc.Height = h; // buffer height
-    backBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // format of the buffer (rgba 32 bits, 8 bits for each chanel)
+    backBufferDesc.Format = fmt; // format of the buffer (rgba 32 bits, 8 bits for each chanel)
     return backBufferDesc;
 }
 Microsoft::WRL::ComPtr<IDXGISwapChain3> common::CreateSwapChain(HWND hwnd, 
     int w, int h, int framebufferCount, bool windowed, 
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue,
-    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory)
+    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory, UINT sampleCount, UINT quality)
 {
     DXGI_MODE_DESC backBufferDesc = DescribeSwapChainBackBuffer(w, h);
     DXGI_SAMPLE_DESC sampleDesc = {};
-    sampleDesc.Count = 1; // multisample count (no multisampling, so we just put 1, since we still need 1 sample)
+    sampleDesc.Count = sampleCount; 
+    sampleDesc.Quality = quality;
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = framebufferCount; // number of buffers we have
     swapChainDesc.BufferDesc = backBufferDesc; // our back buffer description
@@ -93,7 +94,7 @@ Microsoft::WRL::ComPtr<IDXGISwapChain3> common::CreateSwapChain(HWND hwnd,
     swapChainDesc.SampleDesc = sampleDesc; // our multi-sampling description
     swapChainDesc.Windowed = windowed; // set to true, then if in fullscreen must call SetFullScreenState with true for full screen to get uncapped fps
     IDXGISwapChain* tempSwapChain;
-    dxgiFactory->CreateSwapChain(
+    HRESULT hr = dxgiFactory->CreateSwapChain(
         commandQueue.Get(), // the queue will be flushed once the swap chain is created
         &swapChainDesc, // give it the swap chain description we created above
         &tempSwapChain // store the created swap chain in a temp IDXGISwapChain interface
@@ -114,6 +115,36 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> common::CreateRenderTargetViewDescr
     HRESULT hr = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&heap));
     assert(hr == S_OK);
     return heap;
+}
+
+Microsoft::WRL::ComPtr<IDXGISwapChain3> common::CreateSwapChain(HWND hwnd, 
+    int w, int h, 
+    int framebufferCount, 
+    bool windowed, 
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue, 
+    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory, DXGI_FORMAT backbufferFormat,
+    int sampleCount, int sampleQuality)
+{
+    DXGI_MODE_DESC backBufferDesc = DescribeSwapChainBackBuffer(w, h, backbufferFormat);
+    DXGI_SAMPLE_DESC sampleDesc = {};
+    sampleDesc.Count = sampleCount; // multisample count (no multisampling, so we just put 1, since we still need 1 sample)
+    sampleDesc.Quality = sampleQuality;
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+    swapChainDesc.BufferCount = framebufferCount; // number of buffers we have
+    swapChainDesc.BufferDesc = backBufferDesc; // our back buffer description
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // this says the pipeline will render to this swap chain
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // dxgi will discard the buffer (data) after we call present
+    swapChainDesc.OutputWindow = hwnd; // handle to our window
+    swapChainDesc.SampleDesc = sampleDesc; // our multi-sampling description
+    swapChainDesc.Windowed = windowed; // set to true, then if in fullscreen must call SetFullScreenState with true for full screen to get uncapped fps
+    IDXGISwapChain* tempSwapChain;
+    dxgiFactory->CreateSwapChain(
+        commandQueue.Get(), // the queue will be flushed once the swap chain is created
+        &swapChainDesc, // give it the swap chain description we created above
+        &tempSwapChain // store the created swap chain in a temp IDXGISwapChain interface
+    );
+    ComPtr<IDXGISwapChain3> sc = static_cast<IDXGISwapChain3*>(tempSwapChain);
+    return sc;
 }
 
 std::vector<ComPtr<ID3D12Resource>> common::CreateRenderTargets(

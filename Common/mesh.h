@@ -12,6 +12,8 @@ namespace common
 		D3D12_VERTEX_BUFFER_VIEW VertexBufferView()const { return mVertexBufferView; }
 		D3D12_INDEX_BUFFER_VIEW IndexBufferView()const { return mIndexBufferView; }
 		int NumberOfIndices()const { return mNumberOfIndices; }
+		const std::wstring name;
+
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> mVertexBuffer = nullptr;
 		D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
