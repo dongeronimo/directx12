@@ -33,6 +33,12 @@
     <ClCompile Include="presentation_render_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="root_signature_service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="transforms_pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx_context.h">
@@ -53,5 +59,18 @@
     <ClInclude Include="presentation_render_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="entities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="root_signature_service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transforms_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\TransformsAndManyObjects\transforms_pixel_shader.hlsl" />
+    <FxCompile Include="..\TransformsAndManyObjects\transforms_vertex_shader.hlsl" />
   </ItemGroup>
 </Project>

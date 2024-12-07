@@ -5,11 +5,16 @@
 #include "swapchain.h"
 #include "offscreen_render_pass.h"
 #include "presentation_render_pass.h"
+#include "entities.h"
+#include "root_signature_service.h"
+#include "transforms_pipeline.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 800;
 constexpr int H = 600;
 std::vector<std::shared_ptr<common::Mesh>> gMeshes;
+
+entt::registry gRegistry;
 
 void LoadAssets(rtt::DxContext& context)
 {
@@ -49,6 +54,25 @@ int main()
 	//create the offscreen render pass
 	std::shared_ptr<rtt::OffscreenRenderPass> offscreenRP = std::make_shared<rtt::OffscreenRenderPass>();
 	std::shared_ptr<rtt::PresentationRenderPass> presentationRP = std::make_shared<rtt::PresentationRenderPass>();
+	///////Create the world///////
+	const auto monkey = gRegistry.create();
+	gRegistry.emplace<rtt::entities::GameObject>(monkey, L"Monkey");
+	gRegistry.emplace<rtt::entities::MeshRenderer>(monkey, 1u);
+	gRegistry.emplace<rtt::entities::Transform>(monkey,
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f ),
+		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f ),
+		DirectX::XMQuaternionIdentity());
+	//create root signature
+	ComPtr<ID3D12RootSignature> transformsRootSignature = rtt::RootSignatureForShaderTransforms(context->Device());
+	//create pipeline
+	rtt::TransformsPipeline transformsPipeline(
+		L"transforms_vertex_shader.cso",
+		L"transforms_pixel_shader.cso",
+		transformsRootSignature,
+		context->Device(),
+		context->SampleCount(),
+		context->QualityLevels());
+	//TODO create camera
 	//////Main loop//////
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, &presentationRP]() {
 		context->WaitPreviousFrame();
@@ -61,7 +85,11 @@ int main()
 			offscreenRTV->DepthStencilView(),
 			{1.0,0,0,1}
 		);
-		//TODO draw scene
+		/////////TODO draw scene/////////
+		//TODO bind pipeline
+		//TODO update modelview
+		//TODO update camera
+		//TODO draw
 		//TODO end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());
@@ -75,5 +103,6 @@ int main()
 	window.mOnResize = [](int newW, int newH) {};
 	//////Fire main loop///////
 	window.MainLoop();
+	gMeshes.clear();
 	return 0;
 }

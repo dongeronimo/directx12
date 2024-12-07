@@ -22,6 +22,7 @@
 #include <map>
 #include <unordered_map>
 #include <filesystem>
+#include <entt/entt.hpp>
 
 #include "../Common/vertex.h"
 constexpr int FRAMEBUFFER_COUNT = 2;

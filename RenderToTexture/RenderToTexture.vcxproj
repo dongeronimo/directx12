@@ -71,11 +71,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files (x86)\Assimp\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files (x86)\Assimp\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -144,15 +144,34 @@
     <ClCompile Include="offscreen_rtv.cpp" />
     <ClCompile Include="presentation_render_pass.cpp" />
     <ClCompile Include="RenderToTexture.cpp" />
+    <ClCompile Include="root_signature_service.cpp" />
     <ClCompile Include="swapchain.cpp" />
+    <ClCompile Include="transforms_pipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx_context.h" />
+    <ClInclude Include="entities.h" />
     <ClInclude Include="offscreen_render_pass.h" />
     <ClInclude Include="offscreen_rtv.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="presentation_render_pass.h" />
+    <ClInclude Include="root_signature_service.h" />
     <ClInclude Include="swapchain.h" />
+    <ClInclude Include="transforms_pipeline.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\TransformsAndManyObjects\transforms_pixel_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="..\TransformsAndManyObjects\transforms_vertex_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
