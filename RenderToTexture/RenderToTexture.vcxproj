@@ -139,7 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="camera.cpp" />
     <ClCompile Include="dx_context.cpp" />
+    <ClCompile Include="model_matrix.cpp" />
     <ClCompile Include="offscreen_render_pass.cpp" />
     <ClCompile Include="offscreen_rtv.cpp" />
     <ClCompile Include="presentation_render_pass.cpp" />
@@ -149,8 +151,10 @@
     <ClCompile Include="transforms_pipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="camera.h" />
     <ClInclude Include="dx_context.h" />
     <ClInclude Include="entities.h" />
+    <ClInclude Include="model_matrix.h" />
     <ClInclude Include="offscreen_render_pass.h" />
     <ClInclude Include="offscreen_rtv.h" />
     <ClInclude Include="pch.h" />

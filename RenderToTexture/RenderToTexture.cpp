@@ -8,6 +8,8 @@
 #include "entities.h"
 #include "root_signature_service.h"
 #include "transforms_pipeline.h"
+#include "camera.h"
+#include "model_matrix.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 800;
@@ -72,9 +74,17 @@ int main()
 		context->Device(),
 		context->SampleCount(),
 		context->QualityLevels());
-	//TODO create camera
+	//create camera
+	rtt::Camera camera(*context);
+	camera.SetPerspective(60.0f, ((float)W / (float)H), 0.01f, 100.f);
+	camera.LookAt({ 3.0f, 5.0f, 7.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+
+	//create the model view buffer
+	rtt::ModelMatrix modelMatrixBuffer(*context);
+
 	//////Main loop//////
-	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, &presentationRP]() {
+	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
+		&presentationRP, &modelMatrixBuffer, &camera]() {
 		context->WaitPreviousFrame();
 		context->ResetCommandList();
 		//activate offscreen render pass
@@ -86,9 +96,21 @@ int main()
 			{1.0,0,0,1}
 		);
 		/////////TODO draw scene/////////
+		//TODO update model matrix data to the gpu
+		modelMatrixBuffer.BeginStore();
+		auto modelMatrixView = gRegistry.view<const rtt::entities::Transform>();
+		int idx = 0;
+		for (auto entity : modelMatrixView)
+		{
+			auto& transform = modelMatrixView.get<rtt::entities::Transform>(entity);
+			modelMatrixBuffer.Store(transform, idx);
+			idx++;
+		}
+		modelMatrixBuffer.EndStore(context->CommandList());
+		//TODO update camera data to the gpu
+		camera.StoreInBuffer();
+		//TODO bind root signature
 		//TODO bind pipeline
-		//TODO update modelview
-		//TODO update camera
 		//TODO draw
 		//TODO end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
