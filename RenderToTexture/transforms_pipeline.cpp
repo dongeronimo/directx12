@@ -70,8 +70,10 @@ rtt::TransformsPipeline::TransformsPipeline(const std::wstring& vertexShaderFile
     assert(hr == S_OK);
 }
 
-void rtt::TransformsPipeline::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
-    D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
+void rtt::TransformsPipeline::Bind(
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
+    D3D12_VIEWPORT viewport, 
+    D3D12_RECT scissorRect)
 {
     commandList->SetPipelineState(mPipeline.Get());
     commandList->RSSetViewports(1, &viewport);

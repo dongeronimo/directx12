@@ -52,6 +52,19 @@ rtt::OffscreenRTV::OffscreenRTV(int w, int h, DxContext& context)
 	renderTargetTextureRTVHeap->SetName(L"RenderTargetTextureRTVHeap");
 	depthBuffer->SetName(L"DepthBuffer");
 	dsvHeap->SetName(L"dsvHeap");
+	//create a descriptor heap for shader resource view for the color buffer
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+	srvHeapDesc.NumDescriptors = 1;                         // One SRV
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // CBV/SRV/UAV heap
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	context.Device()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&srvHeap));
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;            // Same as texture format
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;  // 2D texture
+	srvDesc.Texture2D.MipLevels = 1;
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
+	context.Device()->CreateShaderResourceView(renderTargetTexture.Get(), &srvDesc, srvHandle);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE rtt::OffscreenRTV::DepthStencilView()

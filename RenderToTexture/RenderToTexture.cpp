@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "../Common/mesh.h"
 #include "model_matrix.h"
+#include "presentation_pipeline.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 800;
@@ -57,6 +58,7 @@ int main()
 	//create the offscreen render pass
 	std::shared_ptr<rtt::OffscreenRenderPass> offscreenRP = std::make_shared<rtt::OffscreenRenderPass>();
 	std::shared_ptr<rtt::PresentationRenderPass> presentationRP = std::make_shared<rtt::PresentationRenderPass>();
+
 	///////Create the world///////
 	const auto monkey = gRegistry.create();
 	gRegistry.emplace<rtt::entities::GameObject>(monkey, L"Monkey");
@@ -67,6 +69,7 @@ int main()
 		DirectX::XMQuaternionIdentity());
 	//create root signature
 	ComPtr<ID3D12RootSignature> transformsRootSignature = rtt::RootSignatureForShaderTransforms(context->Device());
+	ComPtr<ID3D12RootSignature> presentationRootSignature = rtt::RootSignatureForShaderPresentation(context->Device());
 	//create pipeline
 	rtt::TransformsPipeline transformsPipeline(
 		L"transforms_vertex_shader.cso",
@@ -75,6 +78,8 @@ int main()
 		context->Device(),
 		context->SampleCount(),
 		context->QualityLevels());
+	std::shared_ptr<rtt::PresentationPipeline> presentationPipeline = std::make_shared<rtt::PresentationPipeline>(
+		context->Device(), context->CommandQueue(), presentationRootSignature);
 	//create camera
 	rtt::Camera camera(*context);
 	camera.SetPerspective(60.0f, ((float)W / (float)H), 0.01f, 100.f);
@@ -86,7 +91,7 @@ int main()
 	//////Main loop//////
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
 		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
-		&transformsPipeline]() {
+		&transformsPipeline, &presentationRootSignature, &presentationPipeline]() {
 		context->WaitPreviousFrame();
 		context->ResetCommandList();
 		//activate offscreen render pass
@@ -112,7 +117,7 @@ int main()
 		//update camera data to the gpu
 		camera.StoreInBuffer();
 		//bind root signature
-		context->BindRootSignature(transformsRootSignature, modelMatrixBuffer, camera);
+		context->BindRootSignatureForTransforms(transformsRootSignature, modelMatrixBuffer, camera);
 		//bind pipeline
 		// Fill out the Viewport
 		D3D12_VIEWPORT viewport;
@@ -141,11 +146,18 @@ int main()
 			);
 			idx++;
 		}
-		//TODO end the offscreen render pass
+		//end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());
 		//TODO activate final result render pass
 		presentationRP->Begin();
+		//TODO bind root signature
+		context->BindRootSignatureForPresentation(
+			presentationRootSignature,
+			presentationPipeline->SamplerHeap(),
+			offscreenRTV->SrvHeap());
+		//TODO bind pipeline
+		presentationPipeline->Bind(context->CommandList(), viewport, scissorRect);
 		//TODO draw quad
 		presentationRP->End();
 		context->Present(swapchain->SwapChain());

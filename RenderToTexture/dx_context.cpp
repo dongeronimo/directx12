@@ -84,7 +84,7 @@ void rtt::DxContext::Present(Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain)
     swapchain->Present(0, 0);
 }
 
-void rtt::DxContext::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs, 
+void rtt::DxContext::BindRootSignatureForTransforms(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs, 
     rtt::ModelMatrix& modelMatrixData, 
     rtt::Camera& camera)
 {
@@ -99,4 +99,21 @@ void rtt::DxContext::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignatur
     // the constant buffer for view/proj data is in #2
     commandList->SetGraphicsRootConstantBufferView(2,
         camera.GetConstantBuffer()->GetGPUVirtualAddress());
+}
+
+void rtt::DxContext::BindRootSignatureForPresentation(
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rs, 
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerHeap,
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap)
+{
+    commandList->SetGraphicsRootSignature(rs.Get());
+    //bind the heaps
+    std::array< ID3D12DescriptorHeap*, 2> descriptorHeaps = { 
+        samplerHeap.Get(), //sampler
+        srvHeap.Get() //texture srv 
+    };
+    commandList->SetDescriptorHeaps(descriptorHeaps.size(), descriptorHeaps.data());
+    commandList->SetGraphicsRootDescriptorTable(0, 
+        srvHeap->GetGPUDescriptorHandleForHeapStart());
+
 }

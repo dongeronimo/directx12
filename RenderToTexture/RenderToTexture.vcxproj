@@ -144,6 +144,7 @@
     <ClCompile Include="model_matrix.cpp" />
     <ClCompile Include="offscreen_render_pass.cpp" />
     <ClCompile Include="offscreen_rtv.cpp" />
+    <ClCompile Include="presentation_pipeline.cpp" />
     <ClCompile Include="presentation_render_pass.cpp" />
     <ClCompile Include="RenderToTexture.cpp" />
     <ClCompile Include="root_signature_service.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="offscreen_render_pass.h" />
     <ClInclude Include="offscreen_rtv.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="presentation_pipeline.h" />
     <ClInclude Include="presentation_render_pass.h" />
     <ClInclude Include="root_signature_service.h" />
     <ClInclude Include="swapchain.h" />
@@ -174,6 +176,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="presentation_pixel_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="presentation_vertex_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
   </ItemGroup>

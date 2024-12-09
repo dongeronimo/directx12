@@ -39,9 +39,12 @@ namespace rtt
 		void ResetCommandList();
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList()const { return commandList; }
 		void Present(Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain);
-		void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+		void BindRootSignatureForTransforms(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
 			rtt::ModelMatrix& modelMatrixData,
 			rtt::Camera& camera);
+		void BindRootSignatureForPresentation(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerDescriptorHeap,
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> texture);
 	};
 }
 

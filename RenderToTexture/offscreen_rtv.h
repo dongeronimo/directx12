@@ -9,7 +9,7 @@ namespace rtt
 		Microsoft::WRL::ComPtr<ID3D12Resource> renderTargetTexture;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetTextureRTVHeap;
 		D3D12_CPU_DESCRIPTOR_HANDLE renderToTextureRTVHandle;
-
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap;
 		Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffer;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
 	public:
@@ -19,6 +19,7 @@ namespace rtt
 		Microsoft::WRL::ComPtr<ID3D12Resource> RenderTargetTexture()const {
 			return renderTargetTexture;
 		}
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> SrvHeap() { return srvHeap; }
 	};
 
 }
