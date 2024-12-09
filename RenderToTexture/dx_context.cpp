@@ -1,4 +1,6 @@
 #include "dx_context.h"
+#include "model_matrix.h"
+#include "camera.h"
 using Microsoft::WRL::ComPtr;
 using namespace common;
 rtt::DxContext::DxContext()
@@ -80,4 +82,21 @@ void rtt::DxContext::Present(Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain)
         ppCommandLists.data());
     commandQueue->Signal(fence.Get(), fenceValue);
     swapchain->Present(0, 0);
+}
+
+void rtt::DxContext::BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs, 
+    rtt::ModelMatrix& modelMatrixData, 
+    rtt::Camera& camera)
+{
+    commandList->SetGraphicsRootSignature(rs.Get());
+    //bind the descriptor table (SRV for the structured buffer that holds the model matrices)
+    ID3D12DescriptorHeap* h = modelMatrixData.DescriptorHeap().Get();
+    commandList->SetDescriptorHeaps(1, &h);
+    //Model Matrices are param #0
+    commandList->SetGraphicsRootDescriptorTable(0,
+        modelMatrixData.DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+    // the root constants are in param #1
+    // the constant buffer for view/proj data is in #2
+    commandList->SetGraphicsRootConstantBufferView(2,
+        camera.GetConstantBuffer()->GetGPUVirtualAddress());
 }

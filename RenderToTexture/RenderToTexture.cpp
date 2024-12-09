@@ -9,6 +9,7 @@
 #include "root_signature_service.h"
 #include "transforms_pipeline.h"
 #include "camera.h"
+#include "../Common/mesh.h"
 #include "model_matrix.h"
 using Microsoft::WRL::ComPtr;
 
@@ -84,7 +85,8 @@ int main()
 
 	//////Main loop//////
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
-		&presentationRP, &modelMatrixBuffer, &camera]() {
+		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
+		&transformsPipeline]() {
 		context->WaitPreviousFrame();
 		context->ResetCommandList();
 		//activate offscreen render pass
@@ -95,23 +97,50 @@ int main()
 			offscreenRTV->DepthStencilView(),
 			{1.0,0,0,1}
 		);
-		/////////TODO draw scene/////////
-		//TODO update model matrix data to the gpu
+		/////////draw scene/////////
+		//update model matrix data to the gpu
 		modelMatrixBuffer.BeginStore();
-		auto modelMatrixView = gRegistry.view<const rtt::entities::Transform>();
+		auto view = gRegistry.view<
+			const rtt::entities::Transform,
+			const rtt::entities::MeshRenderer>();
 		int idx = 0;
-		for (auto entity : modelMatrixView)
-		{
-			auto& transform = modelMatrixView.get<rtt::entities::Transform>(entity);
-			modelMatrixBuffer.Store(transform, idx);
+		for (auto [entity, trans, mesh] : view.each()) {
+			modelMatrixBuffer.Store(trans, idx);
 			idx++;
 		}
 		modelMatrixBuffer.EndStore(context->CommandList());
-		//TODO update camera data to the gpu
+		//update camera data to the gpu
 		camera.StoreInBuffer();
-		//TODO bind root signature
-		//TODO bind pipeline
-		//TODO draw
+		//bind root signature
+		context->BindRootSignature(transformsRootSignature, modelMatrixBuffer, camera);
+		//bind pipeline
+		// Fill out the Viewport
+		D3D12_VIEWPORT viewport;
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = static_cast<float>(W);
+		viewport.Height = static_cast<float>(H);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		// Fill out a scissor rect
+		D3D12_RECT scissorRect;
+		scissorRect.left = 0;
+		scissorRect.top = 0;
+		scissorRect.right = static_cast<float>(W);
+		scissorRect.bottom = static_cast<float>(H);
+		transformsPipeline.Bind(context->CommandList(), viewport, scissorRect);
+		//draw
+		idx = 0;
+		for (auto [entity, trans, mesh] : view.each()) {
+			std::shared_ptr<common::Mesh> currMeshInfo = gMeshes[mesh.idx];
+			context->CommandList()->SetGraphicsRoot32BitConstant(1, idx, 0);
+			transformsPipeline.DrawInstanced(context->CommandList(),
+				currMeshInfo->VertexBufferView(),
+				currMeshInfo->IndexBufferView(),
+				currMeshInfo->NumberOfIndices()
+			);
+			idx++;
+		}
 		//TODO end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());

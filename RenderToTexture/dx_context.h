@@ -3,6 +3,8 @@
 #include "../Common/d3d_utils.h"
 namespace rtt
 {
+	class ModelMatrix;
+	class Camera;
 	constexpr unsigned long FENCE_INITIAL_VALUE = 0l;
 	class DxContext
 	{
@@ -37,6 +39,9 @@ namespace rtt
 		void ResetCommandList();
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList()const { return commandList; }
 		void Present(Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain);
+		void BindRootSignature(Microsoft::WRL::ComPtr<ID3D12RootSignature> rs,
+			rtt::ModelMatrix& modelMatrixData,
+			rtt::Camera& camera);
 	};
 }
 

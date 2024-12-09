@@ -69,3 +69,19 @@ rtt::TransformsPipeline::TransformsPipeline(const std::wstring& vertexShaderFile
     hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipeline));
     assert(hr == S_OK);
 }
+
+void rtt::TransformsPipeline::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
+    D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
+{
+    commandList->SetPipelineState(mPipeline.Get());
+    commandList->RSSetViewports(1, &viewport);
+    commandList->RSSetScissorRects(1, &scissorRect);
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void rtt::TransformsPipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, D3D12_VERTEX_BUFFER_VIEW vertexBufferView, D3D12_INDEX_BUFFER_VIEW indexBufferView, int numberOfIndices)
+{
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->IASetIndexBuffer(&indexBufferView);
+    commandList->DrawIndexedInstanced(numberOfIndices, 1, 0, 0, 0);
+}
