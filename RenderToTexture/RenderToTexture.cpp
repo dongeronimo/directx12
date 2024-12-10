@@ -159,6 +159,7 @@ int main()
 		//TODO bind pipeline
 		presentationPipeline->Bind(context->CommandList(), viewport, scissorRect);
 		//TODO draw quad
+		presentationPipeline->Draw(context->CommandList());
 		presentationRP->End();
 		context->Present(swapchain->SwapChain());
 	};

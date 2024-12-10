@@ -29,6 +29,15 @@ void rtt::PresentationPipeline::Bind(
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+void rtt::PresentationPipeline::Draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
+{
+    //TODO: bind the mesh
+    commandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
+    commandList->IASetIndexBuffer(&mIndexBufferView);
+    //TODO: draw
+    commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+}
+
 void rtt::PresentationPipeline::CreateQuad(Microsoft::WRL::ComPtr<ID3D12Device> device,
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue)
 {
@@ -153,10 +162,21 @@ void rtt::PresentationPipeline::CreatePipeline(Microsoft::WRL::ComPtr<ID3D12Root
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
-    // Shader Blobs (Assuming you have compiled your shaders)
-    ComPtr<ID3DBlob> vertexShader; // Compile "vertexShader.hlsl" with target vs_5_0 //TODO load shader
-    ComPtr<ID3DBlob> pixelShader;  // Compile "pixelShader.hlsl" with target ps_5_0 //TODO load shader
-
+    HRESULT hr;
+    ID3DBlob* vertexShader;
+    hr = D3DReadFileToBlob(L"presentation_vertex_shader.cso", &vertexShader);
+    assert(hr == S_OK);
+    D3D12_SHADER_BYTECODE vertexShaderBytecode = {};
+    vertexShaderBytecode.BytecodeLength = vertexShader->GetBufferSize();
+    vertexShaderBytecode.pShaderBytecode = vertexShader->GetBufferPointer();
+    //Load fragment shader bytecode into memory
+    ID3DBlob* pixelShader;
+    hr = D3DReadFileToBlob(L"presentation_pixel_shader.cso", &pixelShader);
+    assert(hr == S_OK);
+    // fill out shader bytecode structure for pixel shader
+    D3D12_SHADER_BYTECODE pixelShaderBytecode = {};
+    pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
+    pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     // Rasterizer State
     D3D12_RASTERIZER_DESC rasterizerState = {};
     rasterizerState.FillMode = D3D12_FILL_MODE_SOLID; // Solid fill for triangles
@@ -212,7 +232,7 @@ void rtt::PresentationPipeline::CreatePipeline(Microsoft::WRL::ComPtr<ID3D12Root
 
     // Create the Pipeline State Object
 
-    HRESULT hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipeline));
+    hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipeline));
     if (FAILED(hr)) {
         // Handle errors
     }
@@ -222,25 +242,26 @@ void rtt::PresentationPipeline::CreatePipeline(Microsoft::WRL::ComPtr<ID3D12Root
 void rtt::PresentationPipeline::CreateSampler(Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
     D3D12_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;       // Linear filtering
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;     // Wrap mode for U
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;     // Wrap mode for V
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;     // Wrap mode for W
+    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
     samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;                              // No anisotropic filtering
-    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;  // No comparison
-    samplerDesc.BorderColor[0] = 0.0f;                          // Border color (not used here)
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    samplerDesc.BorderColor[0] = 0.0f;
     samplerDesc.BorderColor[1] = 0.0f;
     samplerDesc.BorderColor[2] = 0.0f;
     samplerDesc.BorderColor[3] = 0.0f;
-    samplerDesc.MinLOD = 0.0f;                                  // Minimum LOD
-    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;                     // Maximum LOD
+    samplerDesc.MinLOD = 0.0f;
+    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+
     D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
-    samplerHeapDesc.NumDescriptors = 1;                         // One sampler
-    samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;  // Sampler heap
+    samplerHeapDesc.NumDescriptors = 1;
+    samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
     samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-    device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap));
-
+    HRESULT hr = device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap));
+    samplerHandle = samplerHeap->GetCPUDescriptorHandleForHeapStart();
     device->CreateSampler(&samplerDesc, samplerHandle);
 }
