@@ -79,7 +79,9 @@ int main()
 		context->SampleCount(),
 		context->QualityLevels());
 	std::shared_ptr<rtt::PresentationPipeline> presentationPipeline = std::make_shared<rtt::PresentationPipeline>(
-		context->Device(), context->CommandQueue(), presentationRootSignature);
+		context->Device(), context->CommandQueue(), presentationRootSignature, 
+		context->SampleCount(),
+		context->QualityLevels());
 	//create camera
 	rtt::Camera camera(*context);
 	camera.SetPerspective(60.0f, ((float)W / (float)H), 0.01f, 100.f);
@@ -89,6 +91,7 @@ int main()
 	rtt::ModelMatrix modelMatrixBuffer(*context);
 
 	//////Main loop//////
+	static float r = 0;
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
 		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
 		&transformsPipeline, &presentationRootSignature, &presentationPipeline]() {
@@ -100,8 +103,10 @@ int main()
 			offscreenRTV->RenderTargetTexture(),
 			offscreenRTV->RenderTargetView(),
 			offscreenRTV->DepthStencilView(),
-			{1.0,0,0,1}
+			{r,r,0,1}
 		);
+		r += 0.0001f;
+		if (r > 1.0f)r = 0;
 		/////////draw scene/////////
 		//update model matrix data to the gpu
 		modelMatrixBuffer.BeginStore();
@@ -149,18 +154,18 @@ int main()
 		//end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());
-		//TODO activate final result render pass
-		presentationRP->Begin();
-		//TODO bind root signature
+		//activate final result render pass
+		presentationRP->Begin(context->CommandList(), *swapchain);
+		//bind root signature
 		context->BindRootSignatureForPresentation(
 			presentationRootSignature,
 			presentationPipeline->SamplerHeap(),
 			offscreenRTV->SrvHeap());
-		//TODO bind pipeline
+		//bind pipeline
 		presentationPipeline->Bind(context->CommandList(), viewport, scissorRect);
-		//TODO draw quad
+		//draw quad
 		presentationPipeline->Draw(context->CommandList());
-		presentationRP->End();
+		presentationRP->End(context->CommandList(), *swapchain);
 		context->Present(swapchain->SwapChain());
 	};
 	//////On Resize handle//////

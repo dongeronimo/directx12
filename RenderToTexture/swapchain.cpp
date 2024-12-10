@@ -53,6 +53,11 @@ void rtt::Swapchain::CreateRTVs(Microsoft::WRL::ComPtr<ID3D12Device> device)
     }
 }
 
+void rtt::Swapchain::UpdateCurrentBackbuffer()
+{
+    currentBackbuffer = swapChain->GetCurrentBackBufferIndex();
+}
+
 void rtt::Swapchain::CreateRTVandDSVDescriptorHeaps(Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
     assert(swapChain != nullptr);

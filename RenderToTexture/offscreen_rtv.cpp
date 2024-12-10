@@ -6,7 +6,7 @@ rtt::OffscreenRTV::OffscreenRTV(int w, int h, DxContext& context)
 {
 	//create the render target texture, that'll receive the render result
 	renderTargetTexture = common::images::CreateImage(
-		w, h, DXGI_FORMAT_R8G8B8A8_UINT,
+		w, h, offscreenImageFormat,
 		context.SampleCount(), context.QualityLevels(), context.Device(),
 		{1.0f,0,0,1}
 	);
@@ -33,7 +33,7 @@ rtt::OffscreenRTV::OffscreenRTV(int w, int h, DxContext& context)
 		renderTargetTextureRTVHeap->GetCPUDescriptorHandleForHeapStart();
 	// create the render target view
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	rtvDesc.Format = offscreenImageFormat;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	context.Device()->CreateRenderTargetView(renderTargetTexture.Get(),
 		&rtvDesc, renderToTextureRTVHandle);
@@ -60,7 +60,7 @@ rtt::OffscreenRTV::OffscreenRTV(int w, int h, DxContext& context)
 	context.Device()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&srvHeap));
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;            // Same as texture format
+	srvDesc.Format = offscreenImageFormat;            // Same as texture format
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;  // 2D texture
 	srvDesc.Texture2D.MipLevels = 1;
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();

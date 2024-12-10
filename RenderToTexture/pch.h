@@ -28,3 +28,4 @@
 constexpr int FRAMEBUFFER_COUNT = 2;
 constexpr bool FULLSCREEN = false;
 
+constexpr DXGI_FORMAT offscreenImageFormat = DXGI_FORMAT_R8G8B8A8_UNORM;

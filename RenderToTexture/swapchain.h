@@ -13,6 +13,10 @@ namespace rtt
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> SwapChain()const {
 			return swapChain;
 		}
+		Microsoft::WRL::ComPtr<ID3D12Resource> SwapChainBuffer() {
+			return swapchainBuffer[currentBackbuffer];
+		}
+		void UpdateCurrentBackbuffer();
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffer;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain;

@@ -1,7 +1,8 @@
 struct VertexInput
 {
-    float4 position : POSITION; // Clip-space position
-    float2 uv : TEXCOORD; // Texture coordinates
+    float3 pos : POSITION;
+    float3 normal : NORMAL; //not used but the vertex data comes with it, so i declare it here
+    float2 uv : UV;
 };
 
 struct VertexOutput
@@ -13,7 +14,7 @@ struct VertexOutput
 VertexOutput main(VertexInput input)
 {
     VertexOutput output;
-    output.position = input.position; // Pass position to rasterizer
+    output.position = float4(input.pos, 1.0f); // Pass position to rasterizer
     output.uv = input.uv; // Pass UV coordinates to pixel shader
     return output;
 }

@@ -109,11 +109,17 @@ void rtt::DxContext::BindRootSignatureForPresentation(
     commandList->SetGraphicsRootSignature(rs.Get());
     //bind the heaps
     std::array< ID3D12DescriptorHeap*, 2> descriptorHeaps = { 
+        srvHeap.Get(), //texture srv 
         samplerHeap.Get(), //sampler
-        srvHeap.Get() //texture srv 
     };
     commandList->SetDescriptorHeaps(descriptorHeaps.size(), descriptorHeaps.data());
-    commandList->SetGraphicsRootDescriptorTable(0, 
-        srvHeap->GetGPUDescriptorHandleForHeapStart());
+    // Bind the texture SRV (parameter 0)
+    D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = srvHeap->GetGPUDescriptorHandleForHeapStart();
+    commandList->SetGraphicsRootDescriptorTable(0, srvHandle);
+
+    // Bind the sampler (parameter 1)
+    D3D12_GPU_DESCRIPTOR_HANDLE samplerGpuHandle = samplerHeap->GetGPUDescriptorHandleForHeapStart();
+    commandList->SetGraphicsRootDescriptorTable(1, samplerGpuHandle);
+
 
 }
