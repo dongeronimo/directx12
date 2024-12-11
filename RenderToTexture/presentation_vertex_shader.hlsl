@@ -14,6 +14,7 @@ struct VertexOutput
 VertexOutput main(VertexInput input)
 {
     VertexOutput output;
+    input.pos.y = -input.pos.y;
     output.position = float4(input.pos, 1.0f); // Pass position to rasterizer
     output.uv = input.uv; // Pass UV coordinates to pixel shader
     return output;

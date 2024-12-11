@@ -162,6 +162,7 @@ int main()
 			presentationPipeline->SamplerHeap(),
 			offscreenRTV->SrvHeap());
 		//bind pipeline
+
 		presentationPipeline->Bind(context->CommandList(), viewport, scissorRect);
 		//draw quad
 		presentationPipeline->Draw(context->CommandList());
