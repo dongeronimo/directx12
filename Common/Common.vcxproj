@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="concatenate.h" />
     <ClInclude Include="d3d_utils.h" />
+    <ClInclude Include="game_timer.h" />
     <ClInclude Include="input_layout_service.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="mesh_load.h" />
@@ -167,6 +168,7 @@
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="d3d_utils.cpp" />
+    <ClCompile Include="game_timer.cpp" />
     <ClCompile Include="input_layout_service.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_load.cpp" />
