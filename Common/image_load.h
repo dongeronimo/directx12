@@ -11,9 +11,7 @@ namespace common
 		const std::vector<uint8_t> Data;
 		const uint64_t Size;
 		const std::string Name;
-	private:
-		ImageData(int w, int h, std::vector<uint8_t> data, uint64_t size, std::string Name);
-		
+		ImageData(int w, int h, std::vector<uint8_t> data, uint64_t size, std::string Name);		
 	};
 }
 

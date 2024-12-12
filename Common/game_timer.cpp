@@ -40,7 +40,7 @@ void common::GameTimer::Reset()
 void common::GameTimer::Start()
 {
 	__int64 startTime;
-	QueryPerformanceCounter((LARGE_INTEGER*)startTime);
+	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
 	if (mStopped)
 	{
 		mPausedTime += (startTime - mStopTime);

@@ -21,7 +21,8 @@ namespace common
 		void MainLoop();
 		HWND Hwnd()const { return mHWND; }
 		std::optional<std::function<void()>> mOnIdle;
-		std::optional < std::function<void(int w, int h)>> mOnResize;
+		std::optional<std::function<void(int w, int h)>> mOnResize;
+		std::optional<std::function<void()>> mOnCreate;
 		friend LRESULT CALLBACK __WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	private:
 		HWND mHWND;

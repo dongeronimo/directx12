@@ -6,7 +6,7 @@
 std::shared_ptr<common::ImageData> common::ImageData::LoadFromFile(const std::string path)
 {
     int texChannels;
-    int w, int h;
+    int w; int h;
     stbi_uc* bytes = stbi_load(path.c_str(),
         &w, &h, &texChannels, STBI_rgb_alpha);
     uint64_t size = w * h * 4;

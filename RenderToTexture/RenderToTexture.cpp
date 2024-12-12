@@ -12,6 +12,7 @@
 #include "../Common/mesh.h"
 #include "model_matrix.h"
 #include "presentation_pipeline.h"
+#include "../Common/game_timer.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 800;
@@ -19,7 +20,7 @@ constexpr int H = 600;
 std::vector<std::shared_ptr<common::Mesh>> gMeshes;
 
 entt::registry gRegistry;
-
+common::GameTimer gTimer;
 void LoadAssets(rtt::DxContext& context)
 {
 	auto cube = common::io::LoadMesh(context.Device(),
@@ -67,6 +68,12 @@ int main()
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f ),
 		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f ),
 		DirectX::XMQuaternionIdentity());
+	gRegistry.emplace<rtt::entities::DeltaTransform>(monkey,
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), //position variation
+		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), //scale variation
+		DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), //axis of rotation
+		45.0f //angular speed of rotation
+	);
 	//create root signature
 	ComPtr<ID3D12RootSignature> transformsRootSignature = rtt::RootSignatureForShaderTransforms(context->Device());
 	ComPtr<ID3D12RootSignature> presentationRootSignature = rtt::RootSignatureForShaderPresentation(context->Device());
@@ -95,6 +102,37 @@ int main()
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
 		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
 		&transformsPipeline, &presentationRootSignature, &presentationPipeline]() {
+		/////// Update Logic ///////
+		gTimer.Tick();
+		auto gameUpdateView = gRegistry.view<
+			const rtt::entities::DeltaTransform,
+			rtt::entities::Transform>();
+		gameUpdateView.each([](const rtt::entities::DeltaTransform deltaTransform, 
+			rtt::entities::Transform& transform) {
+			using namespace DirectX;
+			//position
+			XMVECTOR pos = XMLoadFloat3(&transform.position);
+			XMVECTOR posVelocity = XMLoadFloat3(&deltaTransform.dPosition);
+			XMVECTOR dPos = XMVectorScale(posVelocity, gTimer.DeltaTime());
+			pos = XMVectorAdd(pos, dPos);
+			DirectX::XMStoreFloat3(&transform.position, pos);
+			//scale
+			XMVECTOR scale = XMLoadFloat3(&transform.scale);
+			XMVECTOR scaleVelocity = XMLoadFloat3(&deltaTransform.dScale);
+			XMVECTOR dScale = XMVectorScale(scaleVelocity, gTimer.DeltaTime());
+			scale = XMVectorAdd(scale, dScale);
+			DirectX::XMStoreFloat3(&transform.scale, scale);
+			//rotation
+			float rotationSpeed = XMConvertToRadians(deltaTransform.rotationSpeed); 
+			float scaledAngle = rotationSpeed * gTimer.DeltaTime();
+			XMVECTOR rotationVariation = XMQuaternionRotationAxis(deltaTransform.rotationAxis ,
+				scaledAngle);
+			XMVECTOR currentQuaternion = transform.rotation;
+			currentQuaternion = XMQuaternionMultiply(currentQuaternion, rotationVariation);
+			currentQuaternion = XMQuaternionNormalize(currentQuaternion);
+			transform.rotation = currentQuaternion;
+		});
+		/////// Draw Scene ///////
 		context->WaitPreviousFrame();
 		context->ResetCommandList();
 		//activate offscreen render pass
@@ -103,18 +141,16 @@ int main()
 			offscreenRTV->RenderTargetTexture(),
 			offscreenRTV->RenderTargetView(),
 			offscreenRTV->DepthStencilView(),
-			{r,r,0,1}
+			{0,0,0,1}
 		);
-		r += 0.0001f;
-		if (r > 1.0f)r = 0;
 		/////////draw scene/////////
 		//update model matrix data to the gpu
 		modelMatrixBuffer.BeginStore();
-		auto view = gRegistry.view<
+		auto renderView = gRegistry.view<
 			const rtt::entities::Transform,
 			const rtt::entities::MeshRenderer>();
 		int idx = 0;
-		for (auto [entity, trans, mesh] : view.each()) {
+		for (auto [entity, trans, mesh] : renderView.each()) {
 			modelMatrixBuffer.Store(trans, idx);
 			idx++;
 		}
@@ -141,7 +177,7 @@ int main()
 		transformsPipeline.Bind(context->CommandList(), viewport, scissorRect);
 		//draw
 		idx = 0;
-		for (auto [entity, trans, mesh] : view.each()) {
+		for (auto [entity, trans, mesh] : renderView.each()) {
 			std::shared_ptr<common::Mesh> currMeshInfo = gMeshes[mesh.idx];
 			context->CommandList()->SetGraphicsRoot32BitConstant(1, idx, 0);
 			transformsPipeline.DrawInstanced(context->CommandList(),
@@ -171,6 +207,11 @@ int main()
 	};
 	//////On Resize handle//////
 	window.mOnResize = [](int newW, int newH) {};
+	//////On Create handle/////
+	window.mOnCreate = []() {
+		gTimer.Reset();
+		gTimer.Start();
+	};
 	//////Fire main loop///////
 	window.MainLoop();
 	gMeshes.clear();

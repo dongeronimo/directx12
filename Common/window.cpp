@@ -7,6 +7,13 @@ LRESULT CALLBACK __WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	assert(_window);
 	switch (uMsg)
 	{	
+		case WM_CREATE:
+			if (_window->mOnCreate.has_value())
+			{
+				auto fn = _window->mOnCreate;
+				(*fn)();
+			}
+			break;
 		case WM_KEYDOWN:
 			if (wParam == VK_ESCAPE) {
 				if (MessageBox(0, L"Are you sure you want to exit?",
