@@ -48,7 +48,7 @@
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="math.h">
+    <ClInclude Include="mathutils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

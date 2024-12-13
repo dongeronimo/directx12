@@ -8,7 +8,7 @@ using namespace Microsoft::WRL;
 struct ModelMatrixStruct {
     DirectX::XMFLOAT4X4 matrix;
 };
-constexpr UINT numMatrices = 1024;
+constexpr UINT numMatrices = 4096;
 constexpr UINT matrixSize = sizeof(ModelMatrixStruct);
 constexpr UINT bufferSize = (numMatrices * matrixSize + 255) & ~255;
 

@@ -16,6 +16,10 @@ namespace common
 		Window(HINSTANCE hInstance, 
 			const std::wstring& className,
 			const std::wstring& title);
+		Window(HINSTANCE hInstance,
+			const std::wstring& className,
+			const std::wstring& title,
+			int w, int h);
 		~Window();
 		void Show();
 		void MainLoop();

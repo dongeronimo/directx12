@@ -14,11 +14,11 @@
 #include "presentation_pipeline.h"
 #include "../Common/game_timer.h"
 #include "../Common/concatenate.h"
-#include "../Common/math.h"
+#include "../Common/mathutils.h"
 using Microsoft::WRL::ComPtr;
 
-constexpr int W = 800;
-constexpr int H = 600;
+constexpr int W = 1024;
+constexpr int H = 768;
 std::vector<std::shared_ptr<common::Mesh>> gMeshes;
 
 entt::registry gRegistry;
@@ -44,7 +44,7 @@ int main()
 {
 	//////Create the window//////
 	HINSTANCE hInstance = GetModuleHandle(NULL);
-	common::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle");
+	common::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle", W, H);
 	window.Show();
 	//////Create directx//////
 	//create the context that has, among other things, the device
@@ -76,35 +76,34 @@ int main()
 		DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), //axis of rotation
 		45.0f //angular speed of rotation
 	);
-	for (auto i = 0; i < 1000; i++)
+	for (auto i = 0; i < 4000; i++)
 	{
 		const auto gameObject = gRegistry.create();
 		auto name = Concatenate(L"GameObject", i);
 		gRegistry.emplace<rtt::entities::GameObject>(gameObject, name);
 		gRegistry.emplace<rtt::entities::MeshRenderer>(gameObject, 0u);
-		int x = i / 25;
-		int z = i % 25;
-		float dist = 4.0f;
-		float offset = dist * 25.0f / 2.0f;
+		int x = i / 64;
+		int z = i % 64;
+		float dist = 1.0f;
+		float offset = dist * 64.0f / 2.0f;
 		gRegistry.emplace<rtt::entities::Transform>(gameObject,
 			DirectX::XMFLOAT3(dist * x - offset , -5.f, dist * z - offset),
-			DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+			DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f),
 			DirectX::XMQuaternionIdentity());
-
 		DirectX::XMFLOAT3 axis(
-			commom::RandomNumber(-1.0f, 1.0f),
-			commom::RandomNumber(-1.0f, 1.0f),
-			commom::RandomNumber(-1.0f, 1.0f)
+			common::RandomNumber(-1.0f, 1.0f),
+			common::RandomNumber(-1.0f, 1.0f),
+			common::RandomNumber(-1.0f, 1.0f)
 		);
 		DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&axis);
 		v1 = DirectX::XMVector3Normalize(v1);
 		DirectX::XMStoreFloat3(&axis, v1);
-		
+		float speed = common::RandomNumber(-90.0f, 90.0f);
 		gRegistry.emplace<rtt::entities::DeltaTransform>(gameObject,
 			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
 			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
 			v1,
-			90.0f
+			speed
 		);
 	}
 	//create root signature
