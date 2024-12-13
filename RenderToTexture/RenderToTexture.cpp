@@ -13,6 +13,8 @@
 #include "model_matrix.h"
 #include "presentation_pipeline.h"
 #include "../Common/game_timer.h"
+#include "../Common/concatenate.h"
+#include "../Common/math.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 800;
@@ -74,6 +76,37 @@ int main()
 		DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), //axis of rotation
 		45.0f //angular speed of rotation
 	);
+	for (auto i = 0; i < 1000; i++)
+	{
+		const auto gameObject = gRegistry.create();
+		auto name = Concatenate(L"GameObject", i);
+		gRegistry.emplace<rtt::entities::GameObject>(gameObject, name);
+		gRegistry.emplace<rtt::entities::MeshRenderer>(gameObject, 0u);
+		int x = i / 25;
+		int z = i % 25;
+		float dist = 4.0f;
+		float offset = dist * 25.0f / 2.0f;
+		gRegistry.emplace<rtt::entities::Transform>(gameObject,
+			DirectX::XMFLOAT3(dist * x - offset , -5.f, dist * z - offset),
+			DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+			DirectX::XMQuaternionIdentity());
+
+		DirectX::XMFLOAT3 axis(
+			commom::RandomNumber(-1.0f, 1.0f),
+			commom::RandomNumber(-1.0f, 1.0f),
+			commom::RandomNumber(-1.0f, 1.0f)
+		);
+		DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&axis);
+		v1 = DirectX::XMVector3Normalize(v1);
+		DirectX::XMStoreFloat3(&axis, v1);
+		
+		gRegistry.emplace<rtt::entities::DeltaTransform>(gameObject,
+			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+			DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+			v1,
+			90.0f
+		);
+	}
 	//create root signature
 	ComPtr<ID3D12RootSignature> transformsRootSignature = rtt::RootSignatureForShaderTransforms(context->Device());
 	ComPtr<ID3D12RootSignature> presentationRootSignature = rtt::RootSignatureForShaderPresentation(context->Device());
@@ -92,7 +125,7 @@ int main()
 	//create camera
 	rtt::Camera camera(*context);
 	camera.SetPerspective(60.0f, ((float)W / (float)H), 0.01f, 100.f);
-	camera.LookAt({ 3.0f, 5.0f, 7.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+	camera.LookAt({ 6.0f, 10.0f, 14.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
 	//create the model view buffer
 	rtt::ModelMatrix modelMatrixBuffer(*context);

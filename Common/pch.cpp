@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "../Common/d3d_utils.h"
 #include "concatenate.h"
+#include "math.h"
 // When you are using pre-compiled headers, this source file is necessary for compilation to succeed.
 
 Microsoft::WRL::ComPtr<ID3D12Resource> common::images::CreateImage(int textureWidth, int textureHeight, DXGI_FORMAT format,
@@ -85,4 +86,27 @@ std::vector<std::shared_ptr<common::Mesh>> common::io::LoadMesh(
     }
     return result;
 
+}
+// Seed with a real random value, if available
+std::random_device rd;
+std::mt19937 gen(rd());  // Standard mersenne_twister_engine
+
+float commom::RandomNumber(float _min, float _max)
+{
+    std::uniform_real_distribution<> realDist(_min, _max);
+    double randomDouble = realDist(gen);
+    return static_cast<float>(randomDouble);
+}
+
+DirectX::XMFLOAT3 commom::RandomNormalizedVector()
+{
+    DirectX::XMFLOAT3 v0(
+        commom::RandomNumber(-1.0f, 1.0f),
+        commom::RandomNumber(-1.0f, 1.0f),
+        commom::RandomNumber(-1.0f, 1.0f)
+        );
+    DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&v0);
+    v1 = DirectX::XMVector3Normalize(v1);
+    DirectX::XMStoreFloat3(&v0, v1);
+    return v0;
 }

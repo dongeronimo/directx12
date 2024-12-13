@@ -30,6 +30,7 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+#include <random>
 namespace common
 {
 	class Mesh;
@@ -66,4 +67,6 @@ namespace common::io
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue,
 		std::string filepathInAssetFolder);
 }
+
+
 #endif //PCH_H
