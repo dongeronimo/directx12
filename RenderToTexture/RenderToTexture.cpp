@@ -136,14 +136,15 @@ int main()
 	camera.LookAt({ 6.0f, 10.0f, 14.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
 	//create the model view buffer
-	std::shared_ptr<rtt::ModelMatrix> modelMatrixBuffer = std::make_shared<rtt::ModelMatrix>(*context);
+	std::shared_ptr<rtt::ModelMatrix> modelMatrixForMonkeys = std::make_shared<rtt::ModelMatrix>(*context);
+	std::shared_ptr<rtt::InstanceData<int, 4096>> monkeyInstanceIndexes = std::make_shared<rtt::InstanceData<int, 4096>>(context->Device(), context->CommandQueue());
 	//instance index buffer for the cubes
 	std::shared_ptr<rtt::InstanceData<int, 4096>> cubeInstanceIndexes = std::make_shared<rtt::InstanceData<int, 4096>>(context->Device(), context->CommandQueue());
 	std::shared_ptr<rtt::ModelMatrix>  modelMatrixForCubes = std::make_shared<rtt::ModelMatrix>(*context);
 	//////Main loop//////
 	static float r = 0;
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
-		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
+		&presentationRP, &modelMatrixForMonkeys,&monkeyInstanceIndexes, &camera, &transformsRootSignature,
 		&transformsPipeline, &presentationRootSignature, &presentationPipeline, &instancedPipeline,
 		&modelMatrixForCubes, &cubeInstanceIndexes]()
 	{
@@ -209,7 +210,7 @@ int main()
 		context->CommandList()->RSSetViewports(1, &viewport);
 		context->CommandList()->RSSetScissorRects(1, &scissorRect);
 
-		//TODO: Send cube data to GPU, we need to send the matrices and the indices.
+		//Send cube data to GPU, we need to send the matrices and the indices.
 		auto cubeDrawDataView = gRegistry.view<const rtt::entities::Transform, const rtt::entities::Cube>();
 		modelMatrixForCubes->BeginStore();
 		cubeInstanceIndexes->BeginStore(context->CommandList());
@@ -222,16 +223,16 @@ int main()
 		});
 		modelMatrixForCubes->EndStore(context->CommandList());
 		cubeInstanceIndexes->EndStore(context->CommandList());
-		//TODO: bind root signature
+		//bind root signature
 		context->CommandList()->SetGraphicsRootSignature(instancedPipeline->RootSignature().Get());
 		////root param 1 = view projection buffer - all objects will use the same camera
 		camera.StoreInBuffer();
 		context->CommandList()->SetGraphicsRootConstantBufferView(1,
 			camera.GetConstantBuffer()->GetGPUVirtualAddress());
-		//TODO: bind the pipeline 
+		//bind the pipeline 
 		context->CommandList()->SetPipelineState(instancedPipeline->Pipeline().Get());
 		context->CommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		//TODO: bind the cube buffers
+		//bind the cube buffers
 		////root param 0 = model matrix buffer - it's different between object classes (cube, monkey, etc)
 		std::vector<ID3D12DescriptorHeap*> cubeDescriptorHeaps = {modelMatrixForCubes->DescriptorHeap().Get() };
 		context->CommandList()->SetDescriptorHeaps(cubeDescriptorHeaps.size(), cubeDescriptorHeaps.data());
@@ -246,11 +247,36 @@ int main()
 		////index list
 		auto cubeIBV = gMeshes[0]->IndexBufferView();
 		context->CommandList()->IASetIndexBuffer(&cubeIBV);
-		//TODO: draw the cube instances
+		//draw the cube instances
 		context->CommandList()->DrawIndexedInstanced(gMeshes[0]->NumberOfIndices(), cubeIdx, 0, 0, 0);
 		//TODO: Send monkey data to GPU, we need to send the matrices and the indices.
-		//TODO: bind monkey buffer
+		auto monkeyDrawDataView = gRegistry.view<const rtt::entities::Transform, const rtt::entities::Monkey>();
+		modelMatrixForMonkeys->BeginStore();
+		monkeyInstanceIndexes->BeginStore(context->CommandList());
+		int monkeyIndex = 0;
+		monkeyDrawDataView.each([&modelMatrixForMonkeys, &monkeyInstanceIndexes, &monkeyIndex](const rtt::entities::Transform t, const rtt::entities::Monkey m) {
+			modelMatrixForMonkeys->Store(t);
+			monkeyInstanceIndexes->Store(monkeyIndex);
+			monkeyIndex++;
+		});
+		modelMatrixForMonkeys->EndStore(context->CommandList());
+		monkeyInstanceIndexes->EndStore(context->CommandList());
+		//TODO: write monkey data
+		////root param 0 
+		std::vector<ID3D12DescriptorHeap*> monkeyDescriptorHeaps = { modelMatrixForMonkeys->DescriptorHeap().Get() };
+		context->CommandList()->SetDescriptorHeaps(monkeyDescriptorHeaps.size(), monkeyDescriptorHeaps.data());
+		context->CommandList()->SetGraphicsRootDescriptorTable(0,modelMatrixForMonkeys->DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+		////vertex input 0 = vertex buffer
+		auto monkeyCubeVBV = gMeshes[1]->VertexBufferView();
+		context->CommandList()->IASetVertexBuffers(0, 1, &monkeyCubeVBV);
+		////vertex input 1 = instance buffer
+		auto monkeyInstanceBV = monkeyInstanceIndexes->InstanceBufferView();
+		context->CommandList()->IASetVertexBuffers(1, 1, &monkeyInstanceBV);
+		////index list
+		auto monkeyIBV = gMeshes[1]->IndexBufferView();
+		context->CommandList()->IASetIndexBuffer(&monkeyIBV);
 		//TODO: draw monkey
+		context->CommandList()->DrawIndexedInstanced(gMeshes[1]->NumberOfIndices(), cubeIdx, 0, 0, 0);
 		/*
 		//update model matrix data to the gpu
 		modelMatrixBuffer.BeginStore();
