@@ -1,30 +1,33 @@
-#include "transforms_pipeline.h"
+#include "instanced_transform_pipeline.h"
 #include "../Common/input_layout_service.h"
-rtt::TransformsPipeline::TransformsPipeline(const std::wstring& vertexShaderFileName,
-    const std::wstring& pixelShaderFileName, 
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature, 
-    Microsoft::WRL::ComPtr<ID3D12Device> device,
-    UINT sampleCount,
-    UINT quality)
+using Microsoft::WRL::ComPtr;
+using namespace common;
+using namespace rtt;
+Microsoft::WRL::ComPtr<ID3D12RootSignature>  rtt::InstancedTransformPipeline::rootSignature;
+rtt::InstancedTransformPipeline::InstancedTransformPipeline(
+    const std::wstring& vsFilename, 
+    const std::wstring& psFilename, 
+    Microsoft::WRL::ComPtr<ID3D12Device> device, 
+    UINT sampleCount, UINT quality)
 {
-    std::filesystem::path cwd = std::filesystem::current_path();
     HRESULT hr;
+    CreateRootSignatureIfNotCreatedYet(device);
     ID3DBlob* vertexShader;
-    hr = D3DReadFileToBlob(vertexShaderFileName.c_str(), &vertexShader);
+    hr = D3DReadFileToBlob(vsFilename.c_str(), &vertexShader);
     assert(hr == S_OK);
     D3D12_SHADER_BYTECODE vertexShaderBytecode = {};
     vertexShaderBytecode.BytecodeLength = vertexShader->GetBufferSize();
     vertexShaderBytecode.pShaderBytecode = vertexShader->GetBufferPointer();
     //Load fragment shader bytecode into memory
     ID3DBlob* pixelShader;
-    hr = D3DReadFileToBlob(pixelShaderFileName.c_str(), &pixelShader);
+    hr = D3DReadFileToBlob(psFilename.c_str(), &pixelShader);
     assert(hr == S_OK);
     // fill out shader bytecode structure for pixel shader
     D3D12_SHADER_BYTECODE pixelShaderBytecode = {};
     pixelShaderBytecode.BytecodeLength = pixelShader->GetBufferSize();
     pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
     //create input layout
-    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = common::input_layout_service::DefaultVertexDataAndInstanceId();
+    std::vector< D3D12_INPUT_ELEMENT_DESC> inputLayout = common::input_layout_service::InstancedTransform();
     D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
     inputLayoutDesc.NumElements = inputLayout.size();
     inputLayoutDesc.pInputElementDescs = inputLayout.data();
@@ -70,23 +73,39 @@ rtt::TransformsPipeline::TransformsPipeline(const std::wstring& vertexShaderFile
     assert(hr == S_OK);
 }
 
-void rtt::TransformsPipeline::Bind(
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList,
-    D3D12_VIEWPORT viewport, 
-    D3D12_RECT scissorRect)
+void rtt::InstancedTransformPipeline::CreateRootSignatureIfNotCreatedYet(Microsoft::WRL::ComPtr<ID3D12Device> device)
 {
-    commandList->SetPipelineState(mPipeline.Get());
-    commandList->RSSetViewports(1, &viewport);
-    commandList->RSSetScissorRects(1, &scissorRect);
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
+    if (rootSignature == nullptr)
+    {
+        //the table of root signature parameters
+        std::array<CD3DX12_ROOT_PARAMETER, 2> rootParams;
+        //1) ModelMatrices 
+        CD3DX12_DESCRIPTOR_RANGE srvRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, //it's a shader resource view 
+            1,
+            0); //register t0
+        rootParams[0].InitAsDescriptorTable(1, &srvRange);
+        //ConstantBuffer (view/projection data)
+        rootParams[1].InitAsConstantBufferView(0); //at register b0
 
-void rtt::TransformsPipeline::DrawInstanced(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList, 
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferView, 
-    D3D12_INDEX_BUFFER_VIEW indexBufferView, 
-    int numberOfIndices)
-{
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    commandList->IASetIndexBuffer(&indexBufferView);
-    commandList->DrawIndexedInstanced(numberOfIndices, 1, 0, 0, 0);
+        //create root signature
+        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init(rootParams.size(),//number of parameters
+            rootParams.data(),//parameter list
+            0,//number of static samplers
+            nullptr,//static samplers list
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT //flags
+        );
+        //We need this serialization step
+        ID3DBlob* signature;
+        HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc,
+            D3D_ROOT_SIGNATURE_VERSION_1,
+            &signature, nullptr);
+        assert(hr == S_OK);
+
+        hr = device->CreateRootSignature(0,
+            signature->GetBufferPointer(), //the serialized data is used here
+            signature->GetBufferSize(), //the serialized data is used here
+            IID_PPV_ARGS(&rootSignature));
+    }
 }

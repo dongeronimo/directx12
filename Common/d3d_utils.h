@@ -100,6 +100,11 @@ namespace common
 		ID3D12Device* device,
 		ID3D12CommandQueue* commandQueue,
 		std::function<void(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>)> callback);
-
+	
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBuffer(ID3D12Device* device,
+		ID3D12CommandQueue* commandQueue,
+		const void* data,
+		UINT64 size,
+		Microsoft::WRL::ComPtr<ID3D12Resource>& uploadBuffer);
 
 }

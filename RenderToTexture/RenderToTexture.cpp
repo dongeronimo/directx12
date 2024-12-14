@@ -15,6 +15,8 @@
 #include "../Common/game_timer.h"
 #include "../Common/concatenate.h"
 #include "../Common/mathutils.h"
+#include "instanced_transform_pipeline.h"
+#include "instance_index.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 1024;
@@ -65,7 +67,7 @@ int main()
 	///////Create the world///////
 	const auto monkey = gRegistry.create();
 	gRegistry.emplace<rtt::entities::GameObject>(monkey, L"Monkey");
-	gRegistry.emplace<rtt::entities::MeshRenderer>(monkey, 1u);
+	gRegistry.emplace<rtt::entities::Monkey>(monkey, 1u);
 	gRegistry.emplace<rtt::entities::Transform>(monkey,
 		DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f ),
 		DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f ),
@@ -81,7 +83,7 @@ int main()
 		const auto gameObject = gRegistry.create();
 		auto name = Concatenate(L"GameObject", i);
 		gRegistry.emplace<rtt::entities::GameObject>(gameObject, name);
-		gRegistry.emplace<rtt::entities::MeshRenderer>(gameObject, 0u);
+		gRegistry.emplace<rtt::entities::Cube>(gameObject, 0u);
 		int x = i / 64;
 		int z = i % 64;
 		float dist = 1.0f;
@@ -109,7 +111,7 @@ int main()
 	//create root signature
 	ComPtr<ID3D12RootSignature> transformsRootSignature = rtt::RootSignatureForShaderTransforms(context->Device());
 	ComPtr<ID3D12RootSignature> presentationRootSignature = rtt::RootSignatureForShaderPresentation(context->Device());
-	//create pipeline
+	//create pipelines
 	rtt::TransformsPipeline transformsPipeline(
 		L"transforms_vertex_shader.cso",
 		L"transforms_pixel_shader.cso",
@@ -121,26 +123,54 @@ int main()
 		context->Device(), context->CommandQueue(), presentationRootSignature, 
 		context->SampleCount(),
 		context->QualityLevels());
+	std::shared_ptr<rtt::InstancedTransformPipeline> instancedPipeline = std::make_shared<rtt::InstancedTransformPipeline>(
+		L"instanced_transform_vertex_shader.cso",
+		L"instanced_transform_pixel_shader.cso",
+		context->Device(),
+		context->SampleCount(),
+		context->QualityLevels()
+	);
 	//create camera
 	rtt::Camera camera(*context);
 	camera.SetPerspective(60.0f, ((float)W / (float)H), 0.01f, 100.f);
 	camera.LookAt({ 6.0f, 10.0f, 14.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
 
 	//create the model view buffer
-	rtt::ModelMatrix modelMatrixBuffer(*context);
-
+	std::shared_ptr<rtt::ModelMatrix> modelMatrixBuffer = std::make_shared<rtt::ModelMatrix>(*context);
+	//instance index buffer for the cubes
+	std::shared_ptr<rtt::InstanceData<int, 4096>> cubeInstanceIndexes = std::make_shared<rtt::InstanceData<int, 4096>>(context->Device(), context->CommandQueue());
+	std::shared_ptr<rtt::ModelMatrix>  modelMatrixForCubes = std::make_shared<rtt::ModelMatrix>(*context);
 	//////Main loop//////
 	static float r = 0;
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 
 		&presentationRP, &modelMatrixBuffer, &camera, &transformsRootSignature,
-		&transformsPipeline, &presentationRootSignature, &presentationPipeline]() {
+		&transformsPipeline, &presentationRootSignature, &presentationPipeline, &instancedPipeline,
+		&modelMatrixForCubes, &cubeInstanceIndexes]()
+	{
+		// Fill out the Viewport
+		D3D12_VIEWPORT viewport;
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = static_cast<float>(W);
+		viewport.Height = static_cast<float>(H);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		// Fill out a scissor rect
+		D3D12_RECT scissorRect;
+		scissorRect.left = 0;
+		scissorRect.top = 0;
+		scissorRect.right = static_cast<float>(W);
+		scissorRect.bottom = static_cast<float>(H);
+			
 		/////// Update Logic ///////
 		gTimer.Tick();
 		auto gameUpdateView = gRegistry.view<
 			const rtt::entities::DeltaTransform,
 			rtt::entities::Transform>();
-		gameUpdateView.each([](const rtt::entities::DeltaTransform deltaTransform, 
-			rtt::entities::Transform& transform) {
+		gameUpdateView.each([](
+			const rtt::entities::DeltaTransform deltaTransform, 
+			rtt::entities::Transform& transform
+			) {
 			using namespace DirectX;
 			//position
 			XMVECTOR pos = XMLoadFloat3(&transform.position);
@@ -175,12 +205,58 @@ int main()
 			offscreenRTV->DepthStencilView(),
 			{0,0,0,1}
 		);
-		/////////draw scene/////////
+		//set viewport and scissors
+		context->CommandList()->RSSetViewports(1, &viewport);
+		context->CommandList()->RSSetScissorRects(1, &scissorRect);
+
+		//TODO: Send cube data to GPU, we need to send the matrices and the indices.
+		auto cubeDrawDataView = gRegistry.view<const rtt::entities::Transform, const rtt::entities::Cube>();
+		modelMatrixForCubes->BeginStore();
+		cubeInstanceIndexes->BeginStore(context->CommandList());
+		int cubeIdx = 0;
+		cubeDrawDataView.each([&modelMatrixForCubes, &cubeInstanceIndexes, &cubeIdx](const rtt::entities::Transform t, const rtt::entities::Cube) 
+		{
+			modelMatrixForCubes->Store(t);
+			cubeInstanceIndexes->Store(cubeIdx);
+			cubeIdx++;
+		});
+		modelMatrixForCubes->EndStore(context->CommandList());
+		cubeInstanceIndexes->EndStore(context->CommandList());
+		//TODO: bind root signature
+		context->CommandList()->SetGraphicsRootSignature(instancedPipeline->RootSignature().Get());
+		////root param 1 = view projection buffer - all objects will use the same camera
+		camera.StoreInBuffer();
+		context->CommandList()->SetGraphicsRootConstantBufferView(1,
+			camera.GetConstantBuffer()->GetGPUVirtualAddress());
+		//TODO: bind the pipeline 
+		context->CommandList()->SetPipelineState(instancedPipeline->Pipeline().Get());
+		context->CommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		//TODO: bind the cube buffers
+		////root param 0 = model matrix buffer - it's different between object classes (cube, monkey, etc)
+		std::vector<ID3D12DescriptorHeap*> cubeDescriptorHeaps = {modelMatrixForCubes->DescriptorHeap().Get() };
+		context->CommandList()->SetDescriptorHeaps(cubeDescriptorHeaps.size(), cubeDescriptorHeaps.data());
+		context->CommandList()->SetGraphicsRootDescriptorTable(0,
+			modelMatrixForCubes->DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+		////vertex input 0 = vertex buffer
+		auto cubeVBV = gMeshes[0]->VertexBufferView();
+		context->CommandList()->IASetVertexBuffers(0, 1, &cubeVBV);
+		////vertex input 1 = instance buffer
+		auto instanceBV = cubeInstanceIndexes->InstanceBufferView();
+		context->CommandList()->IASetVertexBuffers(1, 1, &instanceBV);
+		////index list
+		auto cubeIBV = gMeshes[0]->IndexBufferView();
+		context->CommandList()->IASetIndexBuffer(&cubeIBV);
+		//TODO: draw the cube instances
+		context->CommandList()->DrawIndexedInstanced(gMeshes[0]->NumberOfIndices(), cubeIdx, 0, 0, 0);
+		//TODO: Send monkey data to GPU, we need to send the matrices and the indices.
+		//TODO: bind monkey buffer
+		//TODO: draw monkey
+		/*
 		//update model matrix data to the gpu
 		modelMatrixBuffer.BeginStore();
 		auto renderView = gRegistry.view<
 			const rtt::entities::Transform,
-			const rtt::entities::MeshRenderer>();
+			const rtt::entities::Monkey>();
 		int idx = 0;
 		for (auto [entity, trans, mesh] : renderView.each()) {
 			modelMatrixBuffer.Store(trans, idx);
@@ -192,25 +268,12 @@ int main()
 		//bind root signature
 		context->BindRootSignatureForTransforms(transformsRootSignature, modelMatrixBuffer, camera);
 		//bind pipeline
-		// Fill out the Viewport
-		D3D12_VIEWPORT viewport;
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width = static_cast<float>(W);
-		viewport.Height = static_cast<float>(H);
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-		// Fill out a scissor rect
-		D3D12_RECT scissorRect;
-		scissorRect.left = 0;
-		scissorRect.top = 0;
-		scissorRect.right = static_cast<float>(W);
-		scissorRect.bottom = static_cast<float>(H);
+
 		transformsPipeline.Bind(context->CommandList(), viewport, scissorRect);
 		//draw
 		idx = 0;
-		for (auto [entity, trans, mesh] : renderView.each()) {
-			std::shared_ptr<common::Mesh> currMeshInfo = gMeshes[mesh.idx];
+		for (auto [entity, trans, monkey] : renderView.each()) {
+			std::shared_ptr<common::Mesh> currMeshInfo = gMeshes[monkey.idx];
 			context->CommandList()->SetGraphicsRoot32BitConstant(1, idx, 0);
 			transformsPipeline.DrawInstanced(context->CommandList(),
 				currMeshInfo->VertexBufferView(),
@@ -219,6 +282,7 @@ int main()
 			);
 			idx++;
 		}
+		*/
 		//end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());

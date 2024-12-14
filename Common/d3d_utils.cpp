@@ -184,6 +184,57 @@ Microsoft::WRL::ComPtr<ID3D12Debug> common::CreateDebugLayer()
 }
 #endif
 
+Microsoft::WRL::ComPtr<ID3D12Resource> common::CreateBuffer(ID3D12Device* device,
+    ID3D12CommandQueue* commandQueue,
+    const void* data,
+    UINT64 size,
+    Microsoft::WRL::ComPtr<ID3D12Resource>& uploadBuffer)
+{
+    Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+
+    // Create the default heap (GPU memory)
+    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+    device->CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &bufferDesc,
+        D3D12_RESOURCE_STATE_COMMON,
+        nullptr,
+        IID_PPV_ARGS(&buffer)
+    );
+
+    // Create an upload heap (CPU memory)
+    heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    device->CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &bufferDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&uploadBuffer)
+    );
+
+    // Map and copy data to the upload heap
+    void* mappedData;
+    uploadBuffer->Map(0, nullptr, &mappedData);
+    memcpy(mappedData, data, size);
+    uploadBuffer->Unmap(0, nullptr);
+    // Copy data from the upload heap to the GPU heap
+    common::RunCommands(device, commandQueue, [&buffer, &uploadBuffer, size](auto lst) {
+        lst->CopyBufferRegion(buffer.Get(), 0, uploadBuffer.Get(), 0, size);
+
+        // Transition the buffer to the vertex buffer state
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            buffer.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+        );
+        lst->ResourceBarrier(1, &barrier);
+    });
+    return buffer;
+}
+
 void common::RunCommands(
     ID3D12Device* device,
     ID3D12CommandQueue* commandQueue,

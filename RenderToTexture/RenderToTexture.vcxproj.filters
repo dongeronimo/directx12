@@ -48,6 +48,12 @@
     <ClCompile Include="presentation_pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="instanced_transform_pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="instance_index.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx_context.h">
@@ -86,11 +92,19 @@
     <ClInclude Include="presentation_pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="instanced_transform_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="instance_index.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\TransformsAndManyObjects\transforms_pixel_shader.hlsl" />
     <FxCompile Include="..\TransformsAndManyObjects\transforms_vertex_shader.hlsl" />
     <FxCompile Include="presentation_vertex_shader.hlsl" />
     <FxCompile Include="presentation_pixel_shader.hlsl" />
+    <FxCompile Include="instanced_transform_vertex_shader.hlsl" />
+    <FxCompile Include="instanced_transform_pixel_shader.hlsl" />
   </ItemGroup>
 </Project>

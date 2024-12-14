@@ -37,4 +37,14 @@ namespace rtt::entities
 	{
 		std::wstring name;
 	};
+	
+	struct Cube
+	{
+		uint32_t idx;
+	};
+
+	struct Monkey
+	{
+		uint32_t idx;
+	};
 }

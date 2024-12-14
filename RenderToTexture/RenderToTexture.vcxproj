@@ -141,6 +141,8 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="dx_context.cpp" />
+    <ClCompile Include="instanced_transform_pipeline.cpp" />
+    <ClCompile Include="instance_index.cpp" />
     <ClCompile Include="model_matrix.cpp" />
     <ClCompile Include="offscreen_render_pass.cpp" />
     <ClCompile Include="offscreen_rtv.cpp" />
@@ -155,6 +157,8 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="dx_context.h" />
     <ClInclude Include="entities.h" />
+    <ClInclude Include="instanced_transform_pipeline.h" />
+    <ClInclude Include="instance_index.h" />
     <ClInclude Include="model_matrix.h" />
     <ClInclude Include="offscreen_render_pass.h" />
     <ClInclude Include="offscreen_rtv.h" />
@@ -177,6 +181,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="instanced_transform_pixel_shader.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="instanced_transform_vertex_shader.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="presentation_pixel_shader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

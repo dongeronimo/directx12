@@ -66,6 +66,7 @@ void rtt::ModelMatrix::BeginStore()
     void* baseAddress = mappedData;
     ModelMatrixStruct* structs = reinterpret_cast<ModelMatrixStruct*>(baseAddress);
     ZeroMemory(structs, bufferSize);
+    cursor = 0;
 }
 
 void rtt::ModelMatrix::Store(const entities::Transform& t, int idx)
@@ -77,6 +78,19 @@ void rtt::ModelMatrix::Store(const entities::Transform& t, int idx)
     XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(t.position.x, t.position.y, t.position.z);
     XMMATRIX __modelMatrix = DirectX::XMMatrixTranspose(scaleMatrix * rotationMatrix * translationMatrix);
     XMStoreFloat4x4(&structs[idx].matrix, __modelMatrix);
+}
+
+void rtt::ModelMatrix::Store(const entities::Transform& t)
+{
+    assert(cursor != INT_MAX);
+    void* baseAddress = mappedData;
+    ModelMatrixStruct* structs = reinterpret_cast<ModelMatrixStruct*>(baseAddress);
+    XMMATRIX scaleMatrix = DirectX::XMMatrixScaling(t.scale.x, t.scale.y, t.scale.z);
+    XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(t.rotation);
+    XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(t.position.x, t.position.y, t.position.z);
+    XMMATRIX __modelMatrix = DirectX::XMMatrixTranspose(scaleMatrix * rotationMatrix * translationMatrix);
+    XMStoreFloat4x4(&structs[cursor].matrix, __modelMatrix);
+    cursor++;
 }
 
 void rtt::ModelMatrix::EndStore(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList)
@@ -91,6 +105,7 @@ void rtt::ModelMatrix::EndStore(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList
         structuredBuffer.Get(),
         uploadBuffer.Get(),
         0, 0, 1, &subresourceData);
+    cursor = INT_MAX;
 }
 
 

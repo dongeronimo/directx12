@@ -63,3 +63,50 @@ std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::DefaultVerte
     };
     return inputLayout;
 }
+
+std::vector<D3D12_INPUT_ELEMENT_DESC> common::input_layout_service::InstancedTransform()
+{
+    std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout = {
+        // POSITION: float3
+        {
+            "POSITION",              // SemanticName
+            0,                       // SemanticIndex
+            DXGI_FORMAT_R32G32B32_FLOAT, // Format (float3)
+            0,                       // InputSlot
+            0,                       // AlignedByteOffset
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+            0                        // InstanceDataStepRate
+        },
+        // NORMAL: float3
+        {
+            "NORMAL",                // SemanticName
+            0,                       // SemanticIndex
+            DXGI_FORMAT_R32G32B32_FLOAT, // Format (float3)
+            0,                       // InputSlot
+            12,                      // AlignedByteOffset (3 floats * 4 bytes per float)
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+            0                        // InstanceDataStepRate
+        },
+        // UV: float2
+        {
+            "UV",                    // SemanticName
+            0,                       // SemanticIndex
+            DXGI_FORMAT_R32G32_FLOAT,   // Format (float2)
+            0,                       // InputSlot
+            24,                      // AlignedByteOffset (6 floats * 4 bytes per float)
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+            0                        // InstanceDataStepRate
+        },
+        // OBJECT_ID: int
+        {
+            "OBJECT_ID",             // SemanticName
+            0,                       // SemanticIndex
+            DXGI_FORMAT_R32_SINT,    // Format (int)
+            1,                       // InputSlot (separate instance buffer)
+            0,                       // AlignedByteOffset
+            D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, // InputSlotClass
+            1                        // InstanceDataStepRate (advances once per instance)
+        }
+    };
+    return inputLayout;
+}
