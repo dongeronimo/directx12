@@ -277,38 +277,7 @@ int main()
 		context->CommandList()->IASetIndexBuffer(&monkeyIBV);
 		//TODO: draw monkey
 		context->CommandList()->DrawIndexedInstanced(gMeshes[1]->NumberOfIndices(), cubeIdx, 0, 0, 0);
-		/*
-		//update model matrix data to the gpu
-		modelMatrixBuffer.BeginStore();
-		auto renderView = gRegistry.view<
-			const rtt::entities::Transform,
-			const rtt::entities::Monkey>();
-		int idx = 0;
-		for (auto [entity, trans, mesh] : renderView.each()) {
-			modelMatrixBuffer.Store(trans, idx);
-			idx++;
-		}
-		modelMatrixBuffer.EndStore(context->CommandList());
-		//update camera data to the gpu
-		camera.StoreInBuffer();
-		//bind root signature
-		context->BindRootSignatureForTransforms(transformsRootSignature, modelMatrixBuffer, camera);
-		//bind pipeline
-
-		transformsPipeline.Bind(context->CommandList(), viewport, scissorRect);
-		//draw
-		idx = 0;
-		for (auto [entity, trans, monkey] : renderView.each()) {
-			std::shared_ptr<common::Mesh> currMeshInfo = gMeshes[monkey.idx];
-			context->CommandList()->SetGraphicsRoot32BitConstant(1, idx, 0);
-			transformsPipeline.DrawInstanced(context->CommandList(),
-				currMeshInfo->VertexBufferView(),
-				currMeshInfo->IndexBufferView(),
-				currMeshInfo->NumberOfIndices()
-			);
-			idx++;
-		}
-		*/
+		
 		//end the offscreen render pass
 		offscreenRP->End(context->CommandList(),
 			offscreenRTV->RenderTargetTexture());
