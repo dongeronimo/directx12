@@ -17,6 +17,7 @@
 #include "../Common/mathutils.h"
 #include "instanced_transform_pipeline.h"
 #include "instance_index.h"
+#include "../Common/data_buffer.h"
 using Microsoft::WRL::ComPtr;
 
 constexpr int W = 1024;
@@ -141,6 +142,9 @@ int main()
 	//instance index buffer for the cubes
 	std::shared_ptr<rtt::InstanceData<int, 4096>> cubeInstanceIndexes = std::make_shared<rtt::InstanceData<int, 4096>>(context->Device(), context->CommandQueue());
 	std::shared_ptr<rtt::ModelMatrix>  modelMatrixForCubes = std::make_shared<rtt::ModelMatrix>(*context);
+	
+	common::DataBuffer<DirectX::XMFLOAT4X4, 1024> teste(context->Device(),
+		context->CommandQueue());
 	//////Main loop//////
 	static float r = 0;
 	window.mOnIdle = [&context, &swapchain,&offscreenRTV, &offscreenRP, 

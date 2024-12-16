@@ -30,6 +30,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderToTexture", "RenderTo
 		{19077B70-A842-4205-993B-BF3FEDB88D19} = {19077B70-A842-4205-993B-BF3FEDB88D19}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Skinning", "Skinning\Skinning.vcxproj", "{B8823823-6665-4870-962E-069551D08F34}"
+	ProjectSection(ProjectDependencies) = postProject
+		{19077B70-A842-4205-993B-BF3FEDB88D19} = {19077B70-A842-4205-993B-BF3FEDB88D19}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -86,6 +91,14 @@ Global
 		{E3A0B2F7-EE11-42A4-BBB1-5F00F8A38A3E}.Release|x64.Build.0 = Release|x64
 		{E3A0B2F7-EE11-42A4-BBB1-5F00F8A38A3E}.Release|x86.ActiveCfg = Release|Win32
 		{E3A0B2F7-EE11-42A4-BBB1-5F00F8A38A3E}.Release|x86.Build.0 = Release|Win32
+		{B8823823-6665-4870-962E-069551D08F34}.Debug|x64.ActiveCfg = Debug|x64
+		{B8823823-6665-4870-962E-069551D08F34}.Debug|x64.Build.0 = Debug|x64
+		{B8823823-6665-4870-962E-069551D08F34}.Debug|x86.ActiveCfg = Debug|Win32
+		{B8823823-6665-4870-962E-069551D08F34}.Debug|x86.Build.0 = Debug|Win32
+		{B8823823-6665-4870-962E-069551D08F34}.Release|x64.ActiveCfg = Release|x64
+		{B8823823-6665-4870-962E-069551D08F34}.Release|x64.Build.0 = Release|x64
+		{B8823823-6665-4870-962E-069551D08F34}.Release|x86.ActiveCfg = Release|Win32
+		{B8823823-6665-4870-962E-069551D08F34}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
