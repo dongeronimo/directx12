@@ -18,5 +18,9 @@ namespace common
 	std::vector<common::MeshData> LoadMeshes(
 		const std::wstring& filename
 	);
+
+	void LoadSkinnedMesh(
+		const std::string& filename
+	);
 }
 

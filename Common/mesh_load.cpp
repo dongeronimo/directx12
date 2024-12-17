@@ -51,6 +51,18 @@ std::vector<common::MeshData> common::LoadMeshes(const std::string& filename)
     return result;
 }
 
+void common::LoadSkinnedMesh(const std::string& filename)
+{
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(filename.c_str(),
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights);
+    if (!scene) {
+        throw std::runtime_error(importer.GetErrorString());
+    }
+
+}
+
 
 const aiScene* LoadScene(Assimp::Importer& importer, const std::string& path) {
     const aiScene* scene = importer.ReadFile(path.c_str(),

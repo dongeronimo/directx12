@@ -21,12 +21,21 @@
     <ClCompile Include="dx_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skinned_mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dx_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skinned_mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

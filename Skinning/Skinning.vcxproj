@@ -140,11 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dx_context.cpp" />
+    <ClCompile Include="skinned_mesh.cpp" />
     <ClCompile Include="Skinning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx_context.h" />
+    <ClInclude Include="entities.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="skinned_mesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

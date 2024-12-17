@@ -165,6 +165,7 @@
     <ClInclude Include="mathutils.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="mesh_load.h" />
+    <ClInclude Include="offscreen_rtv.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="swapchain.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="input_layout_service.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_load.cpp" />
+    <ClCompile Include="offscreen_rtv.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
