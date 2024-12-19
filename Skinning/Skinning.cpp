@@ -62,7 +62,7 @@ int main()
 	//TODO: set bone weights
 	for (auto mesh : meshes)
 	{
-
+		//for each mesh vertex V evaluate each bone B if the bone has 
 	}
 
 
