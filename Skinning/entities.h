@@ -9,6 +9,7 @@ namespace skinning
     /// i'll use just the bones case
     /// </summary>
     struct Bone {
+        int id;
         std::string name;         // Bone name
         DirectX::XMMATRIX offsetMatrix;
         DirectX::XMFLOAT3 localPosition;

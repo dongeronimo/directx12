@@ -11,6 +11,7 @@
 #include "entities.h"
 #include "entt/entt.hpp"
 #include "skinned_mesh.h"
+#include <iostream>
 using Microsoft::WRL::ComPtr;
 using namespace skinning;
 constexpr int W = 800;
@@ -40,10 +41,43 @@ int main()
 	//find the armature root node
 	aiNode* armatureRoot = skinning::io::FindArmatureRoot(scene->mRootNode, scene);
 	//TODO: load bones
-	std::unordered_map<std::string, entt::entity> boneMap;
-	skinning::io::LoadBone(armatureRoot, worldRegistry, entt::null, scene, boneMap);
-	//TODO: load mesh
-	//TODO: distribute bone influence and weights to the vertexes
+	std::vector<entt::entity> entitiesWithBones; //all these entities will have bone components and all but the root will have boneHierarchy
+	skinning::io::LoadBoneHierarchy(armatureRoot, scene, entitiesWithBones, entt::null, worldRegistry);
+	for (entt::entity& e : entitiesWithBones)
+	{
+		skinning::Bone& bone = worldRegistry.get<skinning::Bone>(e);
+		std::cout << "entity = " << static_cast<uint32_t>(e) << std::endl;
+		std::cout << "bone=" << bone.name << ", id=" << bone.id << std::endl;
+		if (worldRegistry.any_of<skinning::BoneHierarchy>(e))
+		{
+			skinning::BoneHierarchy& hierarchy = worldRegistry.get<skinning::BoneHierarchy>(e);
+			std::cout << "parent=" << static_cast<uint32_t>(hierarchy.parent) << std::endl;
+		}
+		else {
+			std::cout << "is root" << std::endl;
+		}
+	}
+	//TODO: load mesh - the meshes will lack bone weights they'll have to be set later
+	std::vector<std::shared_ptr<skinning::io::MeshData>> meshes = skinning::io::LoadMeshes(scene);
+	//TODO: set bone weights
+	for (auto mesh : meshes)
+	{
+
+	}
+
+
+
+	//std::unordered_map<std::string, entt::entity> boneMap;
+	//skinning::io::LoadBone(armatureRoot, worldRegistry, entt::null, scene, boneMap);
+	////TODO: load mesh - the meshes will lack bone weights they'll have to be set later
+	//std::vector<std::shared_ptr<skinning::io::MeshData>> meshes = skinning::io::LoadMeshes(scene);
+	//std::vector<std::string> boneNames;
+	//// Extract keys
+	//for (const auto& pair : boneMap) {
+	//	boneNames.push_back(pair.first);
+	//}
+	////TODO: distribute bone influence and weights to the vertexes
+	//skinning::io::ApplyWeightsToVertexes(meshes, boneNames, scene);
 	//TODO: load animations
 	//TODO: create the vertex buffer and index buffer
 	//...
