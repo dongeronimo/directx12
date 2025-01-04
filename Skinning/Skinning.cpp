@@ -12,6 +12,9 @@
 #include "entt/entt.hpp"
 #include "skinned_mesh.h"
 #include <iostream>
+#include "mesh_loader_v2.h"
+#include "offscreen_renderpass.h"
+#include "presentation_renderpass.h"
 using Microsoft::WRL::ComPtr;
 using namespace skinning;
 constexpr int W = 800;
@@ -22,6 +25,7 @@ std::vector<std::shared_ptr<common::Mesh>> gMeshes;
 //void LoadCapoeira(skinning::DxContext& context, entt::registry& registry);
 int main()
 {
+	entt::registry worldRegistry;
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 	common::Window window(hInstance, L"colored_triangle_t", L"Colored Triangle", W, H);
 	window.Show();
@@ -31,58 +35,20 @@ int main()
 	common::Swapchain swapchain(window.Hwnd(), W, H, *context);
 	//the scene will not be rendered to the screen, but to this offscreen render target view.
 	common::OffscreenRTV offscreenRTV(W, H, *context, DXGI_FORMAT_R8G8B8A8_UNORM);
-	//TODO: offscreen scene render pass
-	//TODO: presentation render pass
-	//TODO: create the world
+	//Create the render passes
+	skinning::OffscreenRenderPass offscreenRP; //this the pass to draw in the offscreen texture
+	skinning::PresentationRenderPass presentationRP; //this the pass that draws the offscreen texture and optionally applies post processing
+	//load the skin prefab
+	skinning::io::LoadSkinnedMeshAsset(skinning::io::AssembleFilePath("capoeira.glb"),
+		worldRegistry, "boneco_capoeira", context->Device(), context->CommandQueue());
 
-	entt::registry worldRegistry;
-	//load the scene
-	const aiScene* scene = skinning::io::LoadScene("assets/capoeira.glb");
-	//find the armature root node
-	aiNode* armatureRoot = skinning::io::FindArmatureRoot(scene->mRootNode, scene);
-	//TODO: load bones
-	std::vector<entt::entity> entitiesWithBones; //all these entities will have bone components and all but the root will have boneHierarchy
-	skinning::io::LoadBoneHierarchy(armatureRoot, scene, entitiesWithBones, entt::null, worldRegistry);
-	for (entt::entity& e : entitiesWithBones)
-	{
-		skinning::Bone& bone = worldRegistry.get<skinning::Bone>(e);
-		std::cout << "entity = " << static_cast<uint32_t>(e) << std::endl;
-		std::cout << "bone=" << bone.name << ", id=" << bone.id << std::endl;
-		if (worldRegistry.any_of<skinning::BoneHierarchy>(e))
-		{
-			skinning::BoneHierarchy& hierarchy = worldRegistry.get<skinning::BoneHierarchy>(e);
-			std::cout << "parent=" << static_cast<uint32_t>(hierarchy.parent) << std::endl;
-		}
-		else {
-			std::cout << "is root" << std::endl;
-		}
-	}
-	//TODO: load mesh - the meshes will lack bone weights they'll have to be set later
-	std::vector<std::shared_ptr<skinning::io::MeshData>> meshes = skinning::io::LoadMeshes(scene);
-	//TODO: set bone weights
-	for (auto mesh : meshes)
-	{
-		//for each mesh vertex V evaluate each bone B if the bone has 
-	}
+	/*std::shared_ptr<skinning::SkinnedMeshPrefab> capoeiraMeshData = 
+		skinning::io::LoadFromFile(
+			skinning::io::AssembleFilePath("capoeira.glb"), 
+			worldRegistry
+		);*/
 
-
-
-	//std::unordered_map<std::string, entt::entity> boneMap;
-	//skinning::io::LoadBone(armatureRoot, worldRegistry, entt::null, scene, boneMap);
-	////TODO: load mesh - the meshes will lack bone weights they'll have to be set later
-	//std::vector<std::shared_ptr<skinning::io::MeshData>> meshes = skinning::io::LoadMeshes(scene);
-	//std::vector<std::string> boneNames;
-	//// Extract keys
-	//for (const auto& pair : boneMap) {
-	//	boneNames.push_back(pair.first);
-	//}
-	////TODO: distribute bone influence and weights to the vertexes
-	//skinning::io::ApplyWeightsToVertexes(meshes, boneNames, scene);
-	//TODO: load animations
-	//TODO: create the vertex buffer and index buffer
-	//...
-	//done, delete the resources created by the load process
-	delete scene;
+	
 	//TODO: finish creating the game object
 	//TODO: camera buffer
 	//TODO:model matrix buffer, holds the model matrix for each game object
@@ -98,6 +64,7 @@ int main()
 
 	window.MainLoop();
 }
+int main();
 /// <summary>
 /// For each node create bone data and hierarchy
 /// </summary>

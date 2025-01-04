@@ -206,10 +206,10 @@ namespace skinning::io
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Helper function to process a single mesh
-	std::shared_ptr<MeshData> ProcessMesh(const aiMesh* mesh, const aiScene* scene) {
-		std::shared_ptr<MeshData> meshData;
-		meshData->name = mesh->mName.C_Str();
-
+	std::shared_ptr<MeshData> ProcessMesh(const aiMesh* mesh, const aiScene* scene, std::vector<entt::entity>& boneEntitiesList, entt::registry& registry) {
+		std::shared_ptr<MeshData> meshData = std::make_shared<MeshData>();
+		meshData->name = std::string(mesh->mName.C_Str());
+		aiBone** currentMeshBones = mesh->mBones;
 		// Initialize vertex data
 		meshData->vertices.resize(mesh->mNumVertices);
 		for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
@@ -224,6 +224,38 @@ namespace skinning::io
 			}
 			for (int j = 0; j < 4; ++j) {
 				vertex.boneWeights[j] = { 0, 0.0f }; // Initialize bone weights
+			}
+			int weightsSet = 0;
+			for (int j = 0; j < mesh->mNumBones; j++)
+			{
+				assert(weightsSet < 4); //we have only four weights per vertex
+				aiBone* bone_fromAI = currentMeshBones[j];
+				const std::string boneName = bone_fromAI->mName.C_Str();
+				int boneIdInBoneList = INT_MAX;
+				for (int k = 0; k < boneEntitiesList.size(); k++)
+				{
+					skinning::Bone& bone_fromComponent = registry.get<skinning::Bone>(boneEntitiesList[k]);
+					if (bone_fromComponent.name == boneName)
+					{
+						boneIdInBoneList = bone_fromComponent.id;
+						break;
+					}
+				}
+				assert(boneIdInBoneList != INT_MAX);
+				for (int k = 0; k < bone_fromAI->mNumWeights; k++)
+				{
+					aiVertexWeight weight = bone_fromAI->mWeights[k];
+					if (abs(weight.mWeight) - 0.001f < 0.001f)
+					{
+						continue;
+					}
+					if (weight.mVertexId == i)
+					{
+						vertex.boneWeights[weightsSet].boneID = boneIdInBoneList;
+						vertex.boneWeights[weightsSet].weight = weight.mWeight;
+						weightsSet++;
+					}
+				}
 			}
 		}
 		// Copy indices
@@ -240,12 +272,12 @@ namespace skinning::io
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-	std::vector<std::shared_ptr<MeshData>> LoadMeshes(const aiScene* scene)
+	std::vector<std::shared_ptr<MeshData>> LoadMeshes(const aiScene* scene, std::vector<entt::entity>& boneEntitiesList, entt::registry& registry)
 	{
 		std::vector<std::shared_ptr<MeshData>> result;
 		for (auto i = 0; i < scene->mNumMeshes; i++)
 		{
-			result.push_back(ProcessMesh(scene->mMeshes[i], scene));
+			result.push_back(ProcessMesh(scene->mMeshes[i], scene, boneEntitiesList, registry));
 		}
 		return result;
 	}

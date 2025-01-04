@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Assimp\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath);C:\Program Files (x86)\tinygltf\include</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Assimp\lib;C:\Program Files (x86)\tinygltf\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Assimp\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Assimp\include;C:\Program Files (x86)\DirectX-Headers\include\directx;C:\Program Files (x86)\DirectX-Headers\include\dxguids;$(VC_IncludePath);$(SolutionDir)entt\src\;$(WindowsSDK_IncludePath);C:\Program Files (x86)\tinygltf\include</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Assimp\lib;C:\Program Files (x86)\tinygltf\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,7 +117,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;assimp-vc143-mtd.lib;zlibstaticd.lib;../x64/Debug/Common.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;assimp-vc143-mtd.lib;zlibstaticd.lib;../x64/Debug/Common.lib;tinygltf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,13 +140,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dx_context.cpp" />
+    <ClCompile Include="mesh_loader_v2.cpp" />
+    <ClCompile Include="offscreen_renderpass.cpp" />
+    <ClCompile Include="presentation_renderpass.cpp" />
     <ClCompile Include="skinned_mesh.cpp" />
     <ClCompile Include="Skinning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx_context.h" />
     <ClInclude Include="entities.h" />
+    <ClInclude Include="mesh_loader_v2.h" />
+    <ClInclude Include="offscreen_renderpass.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="presentation_renderpass.h" />
     <ClInclude Include="skinned_mesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

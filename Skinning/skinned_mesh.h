@@ -51,7 +51,7 @@ namespace skinning::io
 	//	const aiScene* scene, std::unordered_map<std::string, entt::entity>& boneMap,
 	//	int id = 0);
 
-	std::vector<std::shared_ptr<MeshData>> LoadMeshes(const aiScene* scene);
+	std::vector<std::shared_ptr<MeshData>> LoadMeshes(const aiScene* scene, std::vector<entt::entity>& boneEntitiesList, entt::registry& registry);
 
 }
 
